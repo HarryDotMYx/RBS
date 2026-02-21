@@ -22,12 +22,12 @@
 			#textField(objectName="location", property="class", label="CSS Class *", class="form-control", placeholder="e.g. avsuite")#
 		</div>
 		<div class="col-md-3">
-			#textField(objectName="location", property="colour", label="HEX Colour *", class="form-control bscp", placeholder="e.g. #FF5733#")#
+			#textField(objectName="location", property="colour", label="HEX Colour *", class="form-control bscp", placeholder="e.g. ##FF5733")#
 		</div>
 		<div class="col-md-3">
 			#textField(objectName="location", property="layouts", label="Layouts", class="form-control", placeholder="e.g. boardroom,lecture")#
 		</div>
 	</div>
 	</cfoutput>
-	#includePartial(partial="/common/form/customfields")#
+	<cfoutput>#includePartial(partial="/common/form/customfields")#</cfoutput>
 </cfif>

@@ -1,4 +1,11 @@
 <!--- Place code here that should be executed on the "onRequestStart" event. --->
+<cfscript>
+	if (structKeyExists(application, "rbs") && structKeyExists(application.rbs, "isInstalled") && !application.rbs.isInstalled) {
+		if (findNoCase("/install", cgi.script_name) EQ 0 AND findNoCase("/install", cgi.path_info) EQ 0) {
+			location url="/install/index.cfm" addtoken="false";
+		}
+	}
+</cfscript>
 
  <!--- Set defaults for non cookie enabled browsers--->
 <cfset request.cookie=structnew()>

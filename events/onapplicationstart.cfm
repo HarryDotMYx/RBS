@@ -25,6 +25,14 @@
 			templatetypes="form,output"
 		};
 
+        // Check if the system has been installed
+        if (!fileExists(expandPath("config/install.lock"))) {
+            application.rbs.isInstalled = false;
+            return;
+        } else {
+            application.rbs.isInstalled = true;
+        }
+
 		for(setting in model("setting").findAll()){
 			application.rbs.setting['#setting.id#']=setting.value;
 		}

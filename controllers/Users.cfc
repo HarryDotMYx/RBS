@@ -34,6 +34,21 @@ component extends="Controller" hint="Main User Controller"
 
 
 /******************** Public***********************/
+
+	/**
+	*  @hint User Dashboard / My Account
+	*/
+	public void function myaccount() {
+		// user is already loaded via filter getCurrentUser
+	}
+
+	/**
+	*  @hint Password Change View (renders myaccount)
+	*/
+	public void function mypassword() {
+		renderView(action="myaccount");
+	}
+
 	/**
 	*  @hint Main Account Update
 	*/

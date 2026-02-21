@@ -7,15 +7,33 @@
 	SELECT DISTINCT building FROM locations WHERE building IS NOT NULL;
 </cfquery>
 
-<!--- Inline CSS--->
+<!--- Inline CSS with !important to ensure room colors show up over btn-default --->
 <cfif application.rbs.setting.showlocationcolours>
 <style>
-<cfloop query="locations"><cfif len(colour)>.#class# {background: #colour#; border-color: #colour#;} .pending.#class# {color: #colour#;}</cfif>
+<cfloop query="locations">
+	<cfif len(colour)>
+		.#class# { background-color: #colour# !important; border-color: #colour# !important; color: ##ffffff !important; }
+		.pending.#class# { color: #colour# !important; }
+	</cfif>
 </cfloop>
+/* Flex layout for location buttons to prevent overlap */
+.building-row, .location-row {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+.location-filter {
+    flex: 1 1 auto;
+    white-space: nowrap;
+    text-align: center;
+    border-radius: 4px !important;
+}
 </style>
 </cfif>
+
 <div id="location-filter">
-	<div class="btn-group btn-group-justified building-row">
+	<div class="building-row">
 	#linkTo(action="index",  class="btn btn-primary btn-sm location-filter", data_id="all", text="All")#
 	<cfif buildings.recordcount>
 		<cfloop query="buildings">
@@ -23,9 +41,9 @@
 		</cfloop>
 	</cfif>
 	</div>
-	<div class="btn-group  btn-group-justified location-row">
+	<div class="location-row">
 		<cfloop query="locations">
-			#linkTo(controller="bookings", action="location", key=id, class="all  #toTagSafe(building)# btn btn-sm location-filter btn-default #class# location#id#", text="#name#<br /><small>#description#</small>", encode=false)#
+			#linkTo(controller="bookings", action="location", key=id, class="all #toTagSafe(building)# btn btn-sm location-filter #class# location#id#", text="<b>#name#</b><br /><small>#description#</small>", encode=false)#
 		</cfloop>
 	</div>
 </div>
