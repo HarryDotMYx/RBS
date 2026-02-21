@@ -16,7 +16,7 @@
 		}
 
 		application.rbs={
-			versionNumber="1.2",
+			versionNumber="2.0",
 			setting={},
 			permission={},
 			//roles="admin,editor,user,guest",
