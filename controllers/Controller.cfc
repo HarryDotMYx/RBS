@@ -100,7 +100,26 @@ component extends="Wheels" hint="Global Controller"
 
 
 
-/******************** Global Filters***********************/
+
+ /******************** Global Filters***********************/
+ 	/**
+ 	*  @hint Redirect to login if not authenticated
+ 	*/
+ 	public void function _checkLoggedIn() {
+ 		if(!isLoggedIn()){
+ 			redirectTo(route="login");
+ 		}
+ 	}
+
+ 	/**
+ 	*  @hint Redirect logged-in users away (used in Sessions controller)
+ 	*/
+ 	public void function redirectIfLoggedIn() {
+ 		if(isLoggedIn()){
+ 			redirectTo(route="home");
+ 		}
+ 	}
+
  	/**
  	*  @hint Return all room locations
  	*/
@@ -131,19 +150,113 @@ component extends="Wheels" hint="Global Controller"
  		}
  	}
 
-	// Temporary migration shim (CFWheels 2.x+): old global helper no longer auto-wired
+	// Permission checking — wired from events/functions.cfm logic
 	public boolean function checkPermission(required string permission) {
-		return true;
+		if(_permissionsSetup() && structKeyExists(application.rbs.permission, arguments.permission)) {
+			var retValue = application.rbs.permission[arguments.permission][_returnUserRole()];
+			return (retValue == 1);
+		}
+		return false;
 	}
 
 	public void function checkPermissionAndRedirect(required string permission) {
-		// Keep permissive during migration; harden once permission layer is ported.
-		return;
+		if(!checkPermission(arguments.permission)){
+			redirectTo(route="denied", error="Sorry, you have insufficient permission to access this. If you believe this to be an error, please contact an administrator.");
+		}
 	}
 
 	public boolean function isLoggedIn() {
 		return (structKeyExists(session, "currentuser") && isStruct(session.currentuser))
 			|| (structKeyExists(session, "currentUser") && isStruct(session.currentUser));
+	}
+
+	/**
+	*  @hint Redirect to login if not authenticated — usable as a filter
+	*/
+	public void function _checkLoggedIn() {
+		if(!isLoggedIn()){
+			redirectTo(route="login");
+		}
+	}
+
+	/**
+	*  @hint Redirect logged-in users away — usable as a filter (Sessions)
+	*/
+	public void function redirectIfLoggedIn() {
+		if(isLoggedIn()){
+			redirectTo(route="home");
+		}
+	}
+
+	/**
+	*  @hint Load current user object into scope — usable as a filter
+	*/
+	public void function getCurrentUser() {
+		user = model("user").findOne(where="id=#session.currentUser.id# AND email='#session.currentUser.email#'");
+		if(!isObject(user)){
+			redirectTo(route="home", error="Sorry, we couldn't find your account.");
+		}
+	}
+
+	/**
+	*  @hint Load all roles into scope — usable as a filter
+	*/
+	public void function _getRoles() {
+		variables.roles = application.rbs.roles;
+	}
+
+	/**
+	*  @hint Set request model type — usable as a filter
+	*/
+	public void function _setModelType() {
+		if(structKeyExists(application.rbs, "modeltypes")){
+			request.modeltype = lCase(variables.$class.name);
+		}
+	}
+
+	/**
+	*  @hint Deny access in demo mode — usable as a filter
+	*/
+	public void function denyInDemoMode() {
+		if(structKeyExists(application, "rbs") && structKeyExists(application.rbs, "setting") && application.rbs.setting.isdemomode){
+			redirectTo(route="home", error="Disabled in Demo Mode");
+		}
+	}
+
+	/**
+	*  @hint Returns true if user is in a specified role
+	*/
+	public boolean function userIsInRole(required string role) {
+		if(isLoggedIn()){
+			if(structKeyExists(session.currentuser, "role") && session.currentuser.role == arguments.role){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	*  @hint Returns current user role or "guest"
+	*/
+	public string function _returnUserRole() {
+		if(_permissionsSetup() && isLoggedIn() && structKeyExists(session.currentuser, "role")){
+			return session.currentuser.role;
+		}
+		return "guest";
+	}
+
+	/**
+	*  @hint Checks if permissions are set up in application scope
+	*/
+	public boolean function _permissionsSetup() {
+		return (structKeyExists(application, "rbs") && structKeyExists(application.rbs, "permission"));
+	}
+
+	/**
+	*  @hint Check admin flag for locations
+	*/
+	public void function f_checkLocationsAdmin() {
+		// placeholder for locations admin check — passes through by default
 	}
 
 	public struct function currentUser() {

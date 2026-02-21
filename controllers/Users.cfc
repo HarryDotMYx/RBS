@@ -23,6 +23,16 @@ component extends="Controller" hint="Main User Controller"
 		filters(through="_getRoles", only="index,add,edit,delete,update,create");
 	}
 
+	/**
+	*  @hint Redirect to login if not logged in
+	*/
+	public void function _checkLoggedIn() {
+		if(!StructKeyExists(session, "currentUser")) {
+			redirectTo(route="login");
+		}
+	}
+
+
 /******************** Public***********************/
 	/**
 	*  @hint Main Account Update
