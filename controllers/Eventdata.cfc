@@ -72,17 +72,12 @@ component extends="Controller" hint="Misc Event Data"
 	*  @hint get single event via ajax, i.e for modals
 	*/
 	public void function getevent() {
-		var e = model("event").findOne(where="id = #params.key#", include="location,eventresources(resource)");
+		var e = model("event").findOne(where="id = #params.key#", include="location");
 		if (!isObject(e)) {
-			renderText('<div class="modal-header"><h4 class="modal-title">Event Detail</h4></div><div class="modal-body"><p>Event not found.</p></div>');
+			renderText('<p>Event not found.</p>');
 			return;
 		}
 		var html = '';
-		html &= '<div class="modal-header">';
-		html &= '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>';
-		html &= '<h4 class="modal-title">' & encodeForHTML(e.title) & '</h4>';
-		html &= '</div>';
-		html &= '<div class="modal-body">';
 		html &= '<p><strong>From:</strong> ' & dateFormat(e.start,'dd mmm yyyy') & ' ' & timeFormat(e.start,'HH:mm') & '</p>';
 		html &= '<p><strong>To:</strong> ' & dateFormat(e.end,'dd mmm yyyy') & ' ' & timeFormat(e.end,'HH:mm') & '</p>';
 		html &= '<p><strong>Location:</strong> ' & encodeForHTML(e.location().name) & '</p>';
@@ -90,8 +85,7 @@ component extends="Controller" hint="Misc Event Data"
 		if (len(trim(e.description))) {
 			html &= '<hr><div class="well">' & encodeForHTML(e.description) & '</div>';
 		}
-		html &= '</div>';
-		html &= '<div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div>';
+		html &= '<hr><button type="button" class="btn btn-default" data-dismiss="modal">Close</button>';
 		renderText(html);
 	}
 /******************** Private *********************/

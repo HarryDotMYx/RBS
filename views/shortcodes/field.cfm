@@ -56,11 +56,21 @@ Usage: [field id=1 ] or [field id="name"]
 			}
     	}
 
+
 	} else {
-		// Merge system field data from model
-		if(structKeyExists(variables["#attr.modeltype#"], "systemfields")){
-			t=arrayFind(variables["#attr.modeltype#"]["systemfields"], attr.id);
-			for(var f in variables["#attr.modeltype#"]["systemfields"]){
+		// Merge system field data from model.
+		// Check variables scope first (direct view context), then fall back to model()
+		// because when running inside a closure callback, variables scope is isolated.
+		var _modelObj = "";
+		if (structKeyExists(variables, attr.modeltype) && isObject(variables[attr.modeltype])) {
+			_modelObj = variables[attr.modeltype];
+		} else {
+			try { _modelObj = model(attr.modeltype).new(); } catch(any e) { _modelObj = ""; }
+		}
+
+		if (isObject(_modelObj) && structKeyExists(_modelObj, "systemfields")) {
+			t=arrayFind(_modelObj["systemfields"], attr.id);
+			for(var f in _modelObj["systemfields"]){
 			        attr.temp=StructFindValue(f, attr.id);
 			        if(arrayLen(attr.temp) EQ 1){
 						attr={

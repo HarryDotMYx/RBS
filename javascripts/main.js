@@ -81,18 +81,18 @@ $(document).ready(function () {
 		}
 	}
 
-	// Bootstrap 5 compatible event modal loader
+	// Bootstrap 3 compatible event modal loader
 	function loadEventModal(url) {
-		var modalEl = document.getElementById('eventmodal');
-		var body = document.getElementById('eventmodal-body');
-		if (!modalEl || !body) return;
-		body.innerHTML = '<div class="text-center p-4"><div class="spinner-border" role="status"></div></div>';
-		var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-		modal.show();
-		fetch(url)
-			.then(function (res) { return res.text(); })
-			.then(function (html) { body.innerHTML = html; })
-			.catch(function () { body.innerHTML = '<p class="text-danger p-3">Could not load event details.</p>'; });
+		var $modal = $('#eventmodal');
+		var $body = $('#eventmodal-body');
+		if (!$modal.length || !$body.length) return;
+		$body.html('<div class="text-center p-4"><div class="spinner-border" role="status">Loading...</div></div>');
+		$modal.modal('show');
+		$.get(url, function (html) {
+			$body.html(html);
+		}).fail(function () {
+			$body.html('<p class="text-danger p-3">Could not load event details.</p>');
+		});
 	}
 
 	// Building Rollover------------------

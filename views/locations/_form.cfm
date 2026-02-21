@@ -1,39 +1,33 @@
-<!---================= Room Booking System / https://github.com/neokoenig =======================--->
+<!---================= Room Booking System / https://github.com/neokoenig =======================---->
 <!--- Location Form--->
-<cfoutput>
-#errorMessagesFor("location")#
 <cfif structKeyExists(application.rbs.templates, "location") AND structKeyExists(application.rbs.templates.location, "form")>
-	 #processShortCodes(application.rbs.templates.location.form)#
+	<cfoutput>#processShortCodes(application.rbs.templates.location.form)#</cfoutput>
 <cfelse>
-
-	<!--- Default Template--->
-	<cfsavecontent variable="locationTemplate">
-		<div class="row">
-			<div class="col-sm-4">
-				[field id="name"]
-			</div>
-			<div class="col-sm-4">
-				[field id="building"]
-			</div>
-			<div class="col-sm-4">
-	 			[field id="description"]
-			</div>
-		</div>
+	<!--- Default Template: render fields directly --->
+	<cfoutput>
+	#errorMessagesFor("location")#
 	<div class="row">
-		<div class="col-md-3">
-			[field id="class"]
- 		</div>
-		<div class="col-md-3">
-			[field id="colour"]
+		<div class="col-sm-4">
+			#textField(objectName="location", property="name", label="Name *", class="form-control", placeholder="e.g. Seminar Room 1")#
 		</div>
-		<div class="col-md-3">
-			[field id="layouts"]
+		<div class="col-sm-4">
+			#textField(objectName="location", property="building", label="Building", class="form-control", placeholder="e.g. Main Building")#
+		</div>
+		<div class="col-sm-4">
+			#textField(objectName="location", property="description", label="Description", class="form-control", placeholder="e.g. Ground Floor")#
 		</div>
 	</div>
+	<div class="row" style="margin-top:12px;">
+		<div class="col-md-3">
+			#textField(objectName="location", property="class", label="CSS Class *", class="form-control", placeholder="e.g. avsuite")#
+		</div>
+		<div class="col-md-3">
+			#textField(objectName="location", property="colour", label="HEX Colour *", class="form-control bscp", placeholder="e.g. #FF5733#")#
+		</div>
+		<div class="col-md-3">
+			#textField(objectName="location", property="layouts", label="Layouts", class="form-control", placeholder="e.g. boardroom,lecture")#
+		</div>
+	</div>
+	</cfoutput>
 	#includePartial(partial="/common/form/customfields")#
-	</cfsavecontent>
-
-	#processShortCodes(locationTemplate)#
 </cfif>
-
-</cfoutput>
