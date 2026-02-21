@@ -1,4 +1,4 @@
-# 🏢 Room Booking System (RBS)
+# 🏢 Room Booking System (RBS) v2.0
 
 > A web-based room booking system with calendar interface — migrated and maintained from the original [OxAlto RoomBooking System](https://github.com/neokoenig/RoomBooking) by Tom King.
 
@@ -42,21 +42,15 @@ App URL   : http://<server-ip>:3999
 
 ---
 
-## 🚀 Docker Guide
+## 🚀 Docker Setup & Installation
 
-### Prerequisites
+For a highly detailed, comprehensive guide on how to deploy this system using Docker—including the Automated Zero-Touch Database Installer—please refer to our dedicated documentation:
 
-Make sure the following are installed:
-- [Docker](https://docs.docker.com/get-docker/)
-- [Docker Compose](https://docs.docker.com/compose/install/)
-
-Verify:
-```bash
-docker --version
-docker-compose --version
-```
+👉 **[Read the Full Docker Installation Guide](docs/INSTALL_DOCKER.md)**
 
 ---
+
+### 🟢 Quick Start (TL;DR)
 
 ### 📁 Folder Structure
 
@@ -204,6 +198,16 @@ Configured in `.cfconfig.json`:
 4. **Shortcode/template rendering** — replaced with direct rendering paths for stability.
 5. **Test runner** — `tests/runner.cfm` intentionally disabled in production deployment.
 6. **Install files** — removed from active deployment flow.
+
+---
+
+## 🏆 Credits and Acknowledgements
+
+This comprehensive v2.0 overhaul—spanning UI modernization, automated Docker deployment pipelines, system security patches, and structural architecture upgrades—was engineered and finalized by:
+
+✨ **PG Mohd Azhan Fikri ([HarryDotMYx](https://github.com/HarryDotMYx))**
+
+Deep appreciation is extended for his rigorous efforts in transforming and elevating the Room Booking System to its current professional-grade standard.
 
 ---
 
