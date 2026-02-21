@@ -47,7 +47,7 @@ component extends="Controller" hint="Custom Fields and Templating"
 				redirectTo(action="index", success="customfield successfully created");
 			}
 	        else {
-				renderPage(action="add", error="There were problems creating that customfield");
+				renderView(action="add", error="There were problems creating that customfield");
 			}
 		}
 	}
@@ -70,7 +70,7 @@ component extends="Controller" hint="Custom Fields and Templating"
 				redirectTo(action="index", success="customfield successfully updated");
 			}
 	        else {
-				renderPage(action="edit", error="There were problems updating that customfield");
+				renderView(action="edit", error="There were problems updating that customfield");
 			}
 		}
 	}
@@ -107,7 +107,7 @@ component extends="Controller" hint="Custom Fields and Templating"
 				redirectTo(action="index", success="template successfully created");
 			}
 	        else {
-				renderPage(action="addtemplate", error="There were problems creating that template");
+				renderView(action="addtemplate", error="There were problems creating that template");
 			}
 		}
 	}
@@ -130,7 +130,7 @@ component extends="Controller" hint="Custom Fields and Templating"
 				redirectTo(action="index", success="template successfully updated");
 			}
 	        else {
-				renderPage(action="edittemplate", error="There were problems updating that template");
+				renderView(action="edittemplate", error="There were problems updating that template");
 			}
 		}
 	}

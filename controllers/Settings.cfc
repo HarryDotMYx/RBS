@@ -46,7 +46,7 @@ component extends="Controller" hint="Settings Controller"
 					redirectTo(action="index", success="Setting successfully updated - please note you will need to reload the application for this to take effect");
 				}
 		        else {
-					renderPage(action="edit", error="There were problems updating that setting");
+					renderView(action="edit", error="There were problems updating that setting");
 				}
 	    	}
 		}

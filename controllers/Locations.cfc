@@ -56,7 +56,7 @@ component extends="Controller" hint="Locations Controller"
 				redirectTo(action="index", success="location successfully created");
 			}
 	        else {
-				renderPage(action="add", error="There were problems creating that location");
+				renderView(action="add", error="There were problems creating that location");
 			}
 		}
 	}
@@ -85,7 +85,7 @@ component extends="Controller" hint="Locations Controller"
 				redirectTo(action="index", success="Location successfully updated");
 			}
 	        else {
-				renderPage(action="edit", error="There were problems updating that Location");
+				renderView(action="edit", error="There were problems updating that Location");
 			}
 		}
 	}

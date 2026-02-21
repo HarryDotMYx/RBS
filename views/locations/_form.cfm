@@ -30,7 +30,7 @@
 			[field id="layouts"]
 		</div>
 	</div>
-	#includePartial(partial="/common/form/customfields")#
+	#renderPartial(partial="/common/form/customfields")#
 	</cfsavecontent>
 
 	#processShortCodes(locationTemplate)#

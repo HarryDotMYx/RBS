@@ -45,7 +45,7 @@ component extends="Controller" hint="Resources Controller"
 				redirectTo(action="index", success="resource successfully created");
 			}
 	        else {
-				renderPage(action="add", error="There were problems creating that resource");
+				renderView(action="add", error="There were problems creating that resource");
 			}
 		}
 	}
@@ -68,7 +68,7 @@ component extends="Controller" hint="Resources Controller"
 				redirectTo(action="index", success="resource successfully updated");
 			}
 	        else {
-				renderPage(action="edit", error="There were problems updating that resource");
+				renderView(action="edit", error="There were problems updating that resource");
 			}
 		}
 	}

@@ -4,7 +4,7 @@
 <cfoutput>
 #panel(title="Update Permission")#
 	#startFormTag(action="update", key=permission.id)# 
-	#includePartial("form")#
+	#renderPartial("form")#
 	#submitTag(value="Update Permission")#
 	#endFormTag()#
 #panelEnd()#

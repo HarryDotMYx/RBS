@@ -36,7 +36,6 @@ component extends="Controller" hint="Sessions Controller"
 					p.salt.decrypted = user.salt;
 				}
 				p.password.hashed = hash(params.password & p.salt.decrypted, 'SHA-512');
-
 				if(p.password.hashed EQ user.password){
 					if(structkeyexists(params, "rememberme")){
 						setCookieRememberUsername(params.email);

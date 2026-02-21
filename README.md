@@ -1,41 +1,83 @@
-# OxAlto Room Booking System
+# Room Booking System (RBS)
 
-This is an open source application for booking rooms via a web based calendar, using cfWheels, Bootstrap3, jQuery, FullCalendar.js, and other bits.
+Migrated and maintained instance of the original OxAlto Room Booking System, currently running on:
 
-Author: Tom King - http://www.oxalto.co.uk / https://github.com/Neokoenig / @neokoenig
+- **Wheels 3.0.0**
+- **Lucee 7.0.1.100**
+- **MariaDB (roombooking DB)**
+- **Docker Compose deployment**
 
-## Demo
+> This repository is a practical migration lane (`:3999`) from legacy Wheels 1.x/2.x behavior to Wheels 3 compatibility.
 
-You can find a demo at [roombooking.oxalto.co.uk](http://roombooking.oxalto.co.uk)
+---
 
-## Version
+## Current Status
 
-Current version is 1.2 [release notes](http://roombooking.readme.io/v1.2/docs/12)
+- ✅ Core app boots and routes correctly
+- ✅ Login flow stabilized (legacy helper compatibility shims added)
+- ✅ Calendar events feed works
+- ✅ Booking add/list/view flows are functional
+- ✅ Event details fallback/inline rendering fixed
+- ✅ Legacy plugin compatibility warnings addressed (FlashWrapper + shortcodes)
 
-## Documentation
+---
 
-All documentation now lives at [roombooking.readme.io](http://roombooking.readme.io)
+## Runtime Paths
 
-## Installation & Upgrading
+- App code: `/opt/RoomBooking-A/app-v251`
+- Compose file: `/opt/RoomBooking-A/docker-compose-v3.yml`
+- App URL: `http://<server-ip>:3999`
 
-Please see the [roombooking.readme.io](http://roombooking.readme.io) for all documentation including installation and upgrade notes.
+---
 
-## Notes
+## Start / Restart
 
- This application uses the following plugins and 3rd party code:
+```bash
+cd /opt/RoomBooking-A
+docker-compose -f docker-compose-v3.yml up -d
+```
 
- - [ColdFusion on Wheels][3]
- - [jQuery][4]
- - [Bootstrap3] [5]
- - [FullCalendar][6]
- - [MomentJS][7]
+Restart app service only:
 
-## License
+```bash
+cd /opt/RoomBooking-A
+docker-compose -f docker-compose-v3.yml restart appv3
+```
 
-Room Booking System is released under the Apache License Version 2.0.
+Check status:
 
-[3]: http://cfwheels.org/
-[4]: http://jquery.com/
-[5]: http://getbootstrap.com/
-[6]: http://fullcalendar.io/
-[7]: http://momentjs.com/
+```bash
+cd /opt/RoomBooking-A
+docker-compose -f docker-compose-v3.yml ps
+```
+
+---
+
+## Data Source
+
+Configured datasources:
+
+- `roombooking`
+- `app` (alias for compatibility with Wheels tooling pages)
+
+Defined in `.cfconfig.json`.
+
+---
+
+## Known Migration Notes
+
+1. Some legacy helper behaviors are shimmed in `controllers/Controller.cfc` for Wheels 3 compatibility.
+2. Some shortcode/template rendering paths were replaced with direct rendering for stability.
+3. `tests/runner.cfm` is intentionally redirected/disabled for production-like use.
+4. `install/` files were removed from active deployment flow.
+
+---
+
+## Original Project Attribution
+
+Original project: **OxAlto Room Booking System** by Tom King (@neokoenig)
+
+- Original source: https://github.com/neokoenig/RoomBooking
+- License: Apache License 2.0
+
+This maintained fork includes migration/stability updates for modern runtime compatibility.

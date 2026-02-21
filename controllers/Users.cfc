@@ -39,7 +39,7 @@ component extends="Controller" hint="Main User Controller"
 				redirectTo(route="myaccount", success="Personal account details successfully updated");
 			}
 			else {
-				renderPage(action="myaccount");
+				renderView(action="myaccount");
 			}
 		}
 	}
@@ -57,7 +57,7 @@ component extends="Controller" hint="Main User Controller"
 				redirectTo(action="myaccount", success="Password successfully updated");
 			}
 			else {
-				renderPage(action="myaccount");
+				renderView(action="myaccount");
 			}
 		}
 		else {
@@ -106,7 +106,7 @@ component extends="Controller" hint="Main User Controller"
 				redirectTo( controller="users", action="index", success="User account successfully created");
 			}
 	        else {
-				renderPage( controller="users", action="add", error="");
+				renderView( controller="users", action="add", error="");
 			}
 		}
 	}
@@ -123,7 +123,7 @@ component extends="Controller" hint="Main User Controller"
 				}
 				else {
 					flashInsert(error="There were problems updating that user");
-					renderPage( controller="users", action="edit");
+					renderView( controller="users", action="edit");
 				}
 			}
 		} else {

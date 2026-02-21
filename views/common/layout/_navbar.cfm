@@ -76,19 +76,18 @@
             </ul>
             </li>
           </cfif>
-          <li>
+          
             <cfif isLoggedIn()>
-              #linkTo(route="logout", text="<span class='glyphicon glyphicon-off'></span> Logout", encode=false)#
+              <li>#linkTo(route="logout", text="<span class='glyphicon glyphicon-off'></span> Logout", encode=false)#</li>
             <cfelse>
-              #linkTo(route="login", class="hidden-lg", text="<span class='glyphicon glyphicon-lock'></span> Login", encode=false)#
+              <li class="hidden-lg">#linkTo(route="login", text="<span class='glyphicon glyphicon-lock'></span> Login", encode=false)#</li>
               <li class="dropdown visible-lg">
-            <a class="dropdown-toggle" href="##" data-toggle="dropdown"><span class='glyphicon glyphicon-lock'></span>  Login<strong class="caret"></strong></a>
-            <div id="dropdown-signin" class="dropdown-menu">
-               #includePartial("/sessions/signin")#
-            </div>
-          </li>
+                <a class="dropdown-toggle" href="##" data-toggle="dropdown"><span class='glyphicon glyphicon-lock'></span> Login<strong class="caret"></strong></a>
+                <div id="dropdown-signin" class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
+                   #renderPartial("/sessions/signin")#
+                </div>
+              </li>
             </cfif>
-            </li>
           </ul>
         </nav><!--/.nav-collapse -->
       </div>

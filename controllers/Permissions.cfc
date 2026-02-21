@@ -48,7 +48,7 @@ component extends="Controller" hint="Permissions Controller"
 					redirectTo(action="index", success="permission successfully updated - please note you will need to reload the application for this to take effect");
 				}
 		        else {
-					renderPage(action="edit", error="There were problems updating that permission");
+					renderView(action="edit", error="There were problems updating that permission");
 				}
 	    	}
 		}

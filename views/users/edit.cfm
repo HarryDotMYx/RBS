@@ -4,10 +4,10 @@
 #errorMessagesFor("user")#
 <div class="row">
 	<div class="col-md-9">
-		#includePartial("formparts/main")#
+		#renderPartial("formparts/main")#
 	</div>
 	<div class="col-md-3">
-		#includePartial("formparts/userrole")#
+		#renderPartial("formparts/userrole")#
 	</div>
 </div>
 #submitTag(value="Save", class="btn btn-primary")#

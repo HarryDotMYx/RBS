@@ -39,17 +39,17 @@
 					<div class="col-sm-6">#checkBox(objectName="event", property="emailcontact", label="Email Contact")#</div>
 				</div>
 			</fieldset>
-			#includePartial(partial="/common/form/customfields")#
+			#renderPartial(partial="/common/form/customfields")#
 		</cfif>
 
 		<!--- Event Resources output irrespective of template, for now--->
 		<cfif application.rbs.setting.allowResources>
-			#includePartial("tabs/resources")#
+			#renderPartial("tabs/resources")#
 		</cfif>
 
 		<!--- Ditto repeat fields --->
 		<cfif params.action EQ "add" OR params.action EQ "create">
-			#includePartial("tabs/repeat")#
+			#renderPartial("tabs/repeat")#
 		</cfif>
 
 

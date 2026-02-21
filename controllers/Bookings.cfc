@@ -45,13 +45,13 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	*  @hint By Building
 	*/
 	public void function building() {
-		renderPage(action="index");
+		renderView(action="index");
 	}
 	/**
 	*  @hint By Location
 	*/
 	public void function location() {
-		renderPage(action="index");
+		renderView(action="index");
 	}
 	/**
 	*  @hint Shows Agenda style view table for a given month
@@ -235,7 +235,7 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 		resources=model("resource").findAll(order="type,name");
 	 	event=model("event").findOne(where="id = #params.key#", include="eventresources");
     	customfields=getCustomFields(objectname="event", key=event.key());
-        renderPage(action="add");
+        renderView(action="add");
 	}
 
 	/**
@@ -296,7 +296,7 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 				redirectTo(action="index", success="Event successfully created");
 			}
 	        else {
-				renderPage(action="add", error="There were problems creating that event");
+				renderView(action="add", error="There were problems creating that event");
 			}
 		}
 	}
@@ -334,7 +334,7 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 				redirectTo(action="index", success="event successfully updated");
 			}
 	        else {
-				renderPage(action="edit", error="There were problems updating that event");
+				renderView(action="edit", error="There were problems updating that event");
 			}
 		}
 	}

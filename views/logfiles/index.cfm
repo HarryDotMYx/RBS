@@ -1,6 +1,6 @@
 <!--- Log file output --->
 <cfoutput>
-#includePartial("filter")#
+#renderPartial("filter")#
 </cfoutput>
 <cfif logfiles.recordcount>
 	<table class="table table-condensed">

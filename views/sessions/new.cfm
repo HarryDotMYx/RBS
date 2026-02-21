@@ -12,7 +12,7 @@
 <div class="row">
 	<div class="col-md-6 col-md-offset-3">
 		#panel(title="Sign In")#
-			#includePartial("signin")#
+			#renderPartial("signin")#
 		 #panelend()#
 	</div>
 

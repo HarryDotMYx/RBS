@@ -3,7 +3,7 @@
 <Cfoutput>  
       #panel(title="Account Listings")# 
       #linkTo(controller="users", action="add", text="<span class='glyphicon glyphicon-plus-sign'></span> Create New Account", class="btn btn-primary", encode=false)#
-      #includePartial(partial="usertable", users=users)#
+      #renderPartial(partial="usertable", users=users)#
         <cfif params.showPaging> 
           #paginationLinks()#    
         </cfif>  
