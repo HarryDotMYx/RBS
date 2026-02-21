@@ -4,8 +4,10 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	/**
 	 * @hint Constructor.
 	 */
-	public void function init() {
-		super.init();
+	private function config() {
+		
+		// super.config() disabled during migration;
+// legacy super.init removed for CFWheels2+
 
 		// Additional Permissions
 		filters(through="checkPermissionAndRedirect", permission="accesscalendar");
@@ -23,6 +25,11 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 
 		// Ajax
 		usesLayout(template=false, only="check");
+	}
+
+	public void function index() {
+		locations=model("location").findAll(order="building,name");
+		resources=model("resource").findAll(order="type,name");
 	}
 
 /******************** Views ***********************/
@@ -54,6 +61,8 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 		param name="params.dateto" 	 default="#dateFormat(dateAdd('m', 1, now()), 'DD/MM/YYYY')#";
 		param name="params.location" default="";
 		param name="params.q"		 default="";
+		locations=model("location").findAll(order="building,name");
+		resources=model("resource").findAll(order="type,name");
 		events=model("location").findAll(where="#_agendaListWC()#", include="events", order="start");
 	}
 
@@ -160,9 +169,22 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	*  @hint Add a new booking
 	*/
 	public void function add() {
+		locations=model("location").findAll(order="building,name");
+		resources=model("resource").findAll(order="type,name");
 		 nEventResources=model("eventresource").new();
     	 event=model("event").new(eventresources=nEventResources);
     	 customfields=getCustomFields(objectname="event", key=event.key());
+    	 // Prefill contact details from logged-in user
+    	 if (isLoggedIn()) {
+    	 	var cu = currentUser();
+    	 	if (structKeyExists(cu, "firstname") || structKeyExists(cu, "lastname")) {
+    	 		event.contactname = trim((structKeyExists(cu, "firstname") ? cu.firstname : "") & " " & (structKeyExists(cu, "lastname") ? cu.lastname : ""));
+    	 	}
+    	 	if (structKeyExists(cu, "email")) {
+    	 		event.contactemail = cu.email;
+    	 	}
+    	 	event.emailcontact = 1;
+    	 }
     	 // Listen out for event date & location passed in URL via JS
     	 if(structKeyExists(params, "d")){
     	 	qDate=createDateTime(listFirst(params.d, '-'),ListGetAt(params.d, 2, '-'),ListGetAt(params.d, 3, '-'),hour(now()),00,00);
@@ -209,6 +231,8 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	*  @hint Shortcut to duplicating a booking
 	*/
 	public void function clone() {
+		locations=model("location").findAll(order="building,name");
+		resources=model("resource").findAll(order="type,name");
 	 	event=model("event").findOne(where="id = #params.key#", include="eventresources");
     	customfields=getCustomFields(objectname="event", key=event.key());
         renderPage(action="add");
@@ -218,6 +242,8 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	*  @hint Event CRUD
 	*/
 	public void function edit() {
+		locations=model("location").findAll(order="building,name");
+		resources=model("resource").findAll(order="type,name");
 		event=model("event").findOne(where="id = #params.key#", include="eventresources");
 		customfields=getCustomFields(objectname=request.modeltype, key=params.key);
 	}
@@ -435,5 +461,4 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 
 		}
 	}
-
 }

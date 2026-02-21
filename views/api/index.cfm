@@ -19,18 +19,18 @@
 	</thead>
 	<tbody> <tr>
 	 	<td>All Locations</td>
-		<td>#linkTo(controller="api", onlyPath=false, class="btn btn-warning btn-xs", action="rss2", params="format=xml&token=#session.currentuser.apitoken#", text="<span class='glyphicon glyphicon-asterisk'></span> RSS")#</td>
-		<td>#linkTo(controller="api", onlyPath=false, class="ical btn btn-primary btn-xs", action="ical", params="token=#session.currentuser.apitoken#", text="<span class='glyphicon glyphicon-calendar'></span> iCal")#</td>
-		<td>#linkTo(controller="api", onlyPath=false, class="display btn btn-info btn-xs", action="display", params="token=#session.currentuser.apitoken#", text="<span class='glyphicon glyphicon-calendar'></span> Next 5")#</td>
-		<td>#linkTo(controller="api", onlyPath=false, class="display btn btn-info btn-xs", action="display", params="today=1&token=#session.currentuser.apitoken#", text="<span class='glyphicon glyphicon-calendar'></span> Today")#</td>
+		<td>#linkTo(controller="api", onlyPath=false, class="btn btn-warning btn-xs", action="rss2", params="format=xml&token=#session.currentuser.apitoken#", text="<span class='glyphicon glyphicon-asterisk'></span> RSS", encode=false)#</td>
+		<td>#linkTo(controller="api", onlyPath=false, class="ical btn btn-primary btn-xs", action="ical", params="token=#session.currentuser.apitoken#", text="<span class='glyphicon glyphicon-calendar'></span> iCal", encode=false)#</td>
+		<td>#linkTo(controller="api", onlyPath=false, class="display btn btn-info btn-xs", action="display", params="token=#session.currentuser.apitoken#", text="<span class='glyphicon glyphicon-calendar'></span> Next 5", encode=false)#</td>
+		<td>#linkTo(controller="api", onlyPath=false, class="display btn btn-info btn-xs", action="display", params="today=1&token=#session.currentuser.apitoken#", text="<span class='glyphicon glyphicon-calendar'></span> Today", encode=false)#</td>
 	 </tr>
 	 <cfloop query="locations">
 	 <tr>
 	 	<td>#name#</td>
-		<td>#linkTo(controller="api", onlyPath=false, class="btn btn-warning btn-xs", action="rss2", params="format=xml&location=#id#&token=#session.currentuser.apitoken#", text="<span class='glyphicon glyphicon-asterisk'></span> RSS")#</td>
-		<td>#linkTo(controller="api", onlyPath=false, class="ical btn btn-primary btn-xs", action="ical", params="location=#id#&token=#session.currentuser.apitoken#", text="<span class='glyphicon glyphicon-calendar'></span> iCal")#</td>
-		<td>#linkTo(controller="api", onlyPath=false, class="display btn btn-info  btn-xs", action="display", params="location=#id#&token=#session.currentuser.apitoken#", text="<span class='glyphicon glyphicon-calendar'></span> Next 5")#</td>
-		<td>#linkTo(controller="api", onlyPath=false, class="display btn btn-info  btn-xs", action="display", params="today=1&location=#id#&token=#session.currentuser.apitoken#", text="<span class='glyphicon glyphicon-calendar'></span> Today")#</td>
+		<td>#linkTo(controller="api", onlyPath=false, class="btn btn-warning btn-xs", action="rss2", params="format=xml&location=#id#&token=#session.currentuser.apitoken#", text="<span class='glyphicon glyphicon-asterisk'></span> RSS", encode=false)#</td>
+		<td>#linkTo(controller="api", onlyPath=false, class="ical btn btn-primary btn-xs", action="ical", params="location=#id#&token=#session.currentuser.apitoken#", text="<span class='glyphicon glyphicon-calendar'></span> iCal", encode=false)#</td>
+		<td>#linkTo(controller="api", onlyPath=false, class="display btn btn-info  btn-xs", action="display", params="location=#id#&token=#session.currentuser.apitoken#", text="<span class='glyphicon glyphicon-calendar'></span> Next 5", encode=false)#</td>
+		<td>#linkTo(controller="api", onlyPath=false, class="display btn btn-info  btn-xs", action="display", params="today=1&location=#id#&token=#session.currentuser.apitoken#", text="<span class='glyphicon glyphicon-calendar'></span> Today", encode=false)#</td>
 	 </tr>
 	</cfloop>
 	</tbody>

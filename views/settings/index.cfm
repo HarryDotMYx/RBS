@@ -35,7 +35,7 @@
 					<td>
 						<div class="btn-group">
 							<cfif editable>
-								#linkTo(text="<i class='glyphicon glyphicon-edit'></i> Edit", class="btn btn-xs btn-info", action="edit", key=id)#
+								#linkTo(text="<i class='glyphicon glyphicon-edit'></i> Edit", class="btn btn-xs btn-info", action="edit", key=id, encode=false)#
 							</cfif>
 						</div>
 					</td>

@@ -77,8 +77,8 @@
 		<td>
 			<cfif checkPermission("allowRoomBooking")>
 				<div class="btn-group">
-				#linkTo(action="view", key=eventid, text="<span class='glyphicon glyphicon-eye-open'></span>", controller="bookings", class="btn btn-primary btn-xs")#
-				#linkTo(action="edit", key=eventid, text="<span class='glyphicon glyphicon-pencil'></span>", controller="bookings", class="btn btn-info btn-xs")#
+				#linkTo(action="view", key=eventid, text="<span class='glyphicon glyphicon-eye-open'></span>", controller="bookings", class="btn btn-primary btn-xs", encode=false)#
+				#linkTo(action="edit", key=eventid, text="<span class='glyphicon glyphicon-pencil'></span>", controller="bookings", class="btn btn-info btn-xs", encode=false)#
 
 				</div>
 			</cfif></td>

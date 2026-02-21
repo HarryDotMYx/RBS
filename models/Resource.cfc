@@ -4,7 +4,7 @@ component extends="Model" hint="Resources Model"
 	/**
 	 * @hint Constructor
 	 */
-	public void function init() {
+	private function config() {
 		// Associations
 		hasMany("eventresources");
 	}

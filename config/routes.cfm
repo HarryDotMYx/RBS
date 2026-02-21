@@ -1,26 +1,18 @@
-<!---
-	Here you can add routes to your application and edit the default one.
-	The default route is the one that will be called on your application's "home" page.
---->
 <cfscript>
-
-	// Customer Routes
-	addRoute(name="updateaccount", 	pattern="/my/account/u", 	controller="users", action="updateaccount");
-	addRoute(name="myaccount", 		pattern="/my/account", 		controller="users", action="myaccount");
-	addRoute(name="updatepassword", pattern="/my/password/u", 	controller="users", action="updatepassword");
-	addRoute(name="mypassword", 	pattern="/my/password", 	controller="users", action="mypassword");
-
-	// Login/Out
-	addRoute(name="logout", 		pattern="/logout", 			controller="sessions", action="logout");
-	addRoute(name="attemptlogin", 	pattern="/login/a/", 		controller="sessions", action="attemptlogin");
-	addRoute(name="login", 			pattern="/login", 			controller="sessions", action="new");
- 	addRoute(name="forgetme", 		pattern="/forgetme", 		controller="sessions", action="forgetme");
-	addRoute(name="denied", 		pattern="/denied", 			controller="sessions", action="denied");
-
-	// Remote Data
-	addRoute(name="getEvents", 		pattern="/eventdata/getevents/[type]/[key]", action="getevents", controller="eventdata");
-	addRoute(name="getEvent", 		pattern="/eventdata/getevent/[key]", action="getevent", controller="eventdata");
-
- 	// Default
- 	addRoute(name="home", pattern="", controller="bookings", action="index");
+mapper()
+	.get(name="home", pattern="/", controller="bookings", action="index")
+	.get(name="updateaccount", pattern="/my/account/u", controller="users", action="updateaccount")
+	.get(name="myaccount", pattern="/my/account", controller="users", action="myaccount")
+	.get(name="updatepassword", pattern="/my/password/u", controller="users", action="updatepassword")
+	.get(name="mypassword", pattern="/my/password", controller="users", action="mypassword")
+	.get(name="login", pattern="/login", controller="sessions", action="new")
+	.post(name="attemptlogin", pattern="/login/a", controller="sessions", action="attemptlogin")
+	.get(name="logout", pattern="/logout", controller="sessions", action="logout")
+	.get(name="forgetme", pattern="/forgetme", controller="sessions", action="forgetme")
+	.get(name="denied", pattern="/denied", controller="sessions", action="denied")
+	.get(name="getEvents", pattern="/eventdata/getevents/[type]/[key]", controller="eventdata", action="getevents")
+	.get(name="getEvent", pattern="/eventdata/getevent/[key]", controller="eventdata", action="getevent")
+	.wildcard()
+	.root(to="bookings##index")
+	.end();
 </cfscript>

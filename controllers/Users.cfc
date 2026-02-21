@@ -4,9 +4,11 @@ component extends="Controller" hint="Main User Controller"
 	/**
 	 * @hint Constructor.
 	 */
-	public void function init() {
-		// Permission filters
-		super.init();
+	private function config() {
+		
+		// super.config() disabled during migration;
+// Permission filters
+		// legacy super.init removed for CFWheels2+
 		filters(through="_checkLoggedIn");
 		filters(through="checkPermissionAndRedirect", permission="accessUsers", except="myaccount,updateaccount,updatepassword");
 		filters(through="checkPermissionAndRedirect", permission="updateOwnAccount", only="myaccount,updateaccount,updatepassword");

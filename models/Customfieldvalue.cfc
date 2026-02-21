@@ -3,7 +3,7 @@ component extends="Model" hint=""
 	/**
 	 * @hint Constructor
 	 */
-	public void function init() {
+	private function config() {
 		// Associations
 		hasMany(name="customfieldjoins");
 	}

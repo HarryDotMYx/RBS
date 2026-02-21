@@ -18,9 +18,9 @@
 		<!--- Approvals--->
 		<cfif checkPermission("allowApproveBooking")>
 			<div class="btn-group btn-group-justified">
-				#linkTo(action="approve", key=event.eventid, text="<span class='glyphicon glyphicon-ok'></span> Approve?", controller="bookings", class="btn btn-success btn-sm")#
-				#linkTo(action="deny", key=event.eventid, text="<span class='glyphicon glyphicon-remove'></span> Deny", controller="bookings", class="btn btn-danger btn-sm")#
-				#linkTo(action="deny", key=event.eventid, text="<span class='glyphicon glyphicon-trash'></span> Deny & Delete", controller="bookings", class="btn btn-danger btn-sm", params="delete=1")#
+				#linkTo(action="approve", key=event.eventid, text="<span class='glyphicon glyphicon-ok'></span> Approve?", controller="bookings", class="btn btn-success btn-sm", encode=false)#
+				#linkTo(action="deny", key=event.eventid, text="<span class='glyphicon glyphicon-remove'></span> Deny", controller="bookings", class="btn btn-danger btn-sm", encode=false)#
+				#linkTo(action="deny", key=event.eventid, text="<span class='glyphicon glyphicon-trash'></span> Deny & Delete", controller="bookings", class="btn btn-danger btn-sm", params="delete=1", encode=false)#
 			</div>
 		</cfif>
 	</cfif>
@@ -32,61 +32,34 @@
 <!--- Editing --->
 <cfif checkPermission("allowRoomBooking")>
 	<div class="btn-group btn-group-justified">
-		#linkTo(action="edit", key=event.eventid, text="<span class='glyphicon glyphicon-pencil'></span> Edit", controller="bookings", class="btn btn-info btn-sm")#
-		#linkTo(action="clone", key=event.eventid, text="<span class='glyphicon glyphicon-repeat'></span> Clone", controller="bookings", class="btn btn-warning btn-sm")#
-		#linkTo(action="delete", key=event.eventid, text="<span class='glyphicon glyphicon-trash'></span> Delete", controller="bookings", class="btn btn-danger btn-sm", confirm="Are you sure?")#
+		#linkTo(action="edit", key=event.eventid, text="<span class='glyphicon glyphicon-pencil'></span> Edit", controller="bookings", class="btn btn-info btn-sm", encode=false)#
+		#linkTo(action="clone", key=event.eventid, text="<span class='glyphicon glyphicon-repeat'></span> Clone", controller="bookings", class="btn btn-warning btn-sm", encode=false)#
+		#linkTo(action="delete", key=event.eventid, text="<span class='glyphicon glyphicon-trash'></span> Delete", controller="bookings", class="btn btn-danger btn-sm", confirm="Are you sure?", encode=false)#
 	</div>
 </cfif>
 <cfif checkPermission("viewRoomBooking")>
-<cfif structKeyExists(application.rbs.templates, "event") AND structKeyExists(application.rbs.templates.event, "output")>
-	 #processShortCodes(application.rbs.templates.event.output)#
-<cfelse>
-	<!--- Default Template--->
-	<cfsavecontent variable="eventTemplate">
-		<h4>[output id="title"]</h4>
-		<div class="row">
-			<div class="col-sm-2">
-				<p><strong>From</strong></p>
-			</div>
-			<div class="col-sm-10">
-				[output id="start"]
-			</div>
-		</div>
-
-		<div class="row">
-			<div class="col-sm-2">
-				<p><strong>To</strong></p>
-			</div>
-			<div class="col-sm-10">
-				[output id="end"]
-			</div>
-		</div>
-
-		<div class="row">
-			<div class="col-sm-2">
-				<p><strong>Location</strong></p>
-			</div>
-			<div class="col-sm-10">
-				[output   id="name" append=","] [output id="description"] ([output id="layoutstyle"] style)
-			</div>
-		</div>
-
-		<div class="row">
-			<div class="col-sm-2">
-				<p><strong>Status</strong></p>
-			</div>
-			<div class="col-sm-10">
-				[output   id="status"]
-			</div>
-		</div>
-
-		<p>[output label="Contact" id="contactname"] [output id="contactemail" prepend="(", append=")"] [output id="contactno" prepend="(", append=")"]</p>
-
-		[output id="eventdescription", prepend="<div class='well'>", append="</div>"]
-
-	</cfsavecontent>
-	#processShortCodes(eventTemplate)#
-</cfif>
+	<!--- Wheels 3 migration: render details directly (shortcode output pipeline is unstable) --->
+	<h4>#h(event.title)#</h4>
+	<div class="row">
+		<div class="col-sm-2"><p><strong>From</strong></p></div>
+		<div class="col-sm-10">#dateFormat(event.start, "dd mmm yyyy")# #timeFormat(event.start, "HH:mm")#</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-2"><p><strong>To</strong></p></div>
+		<div class="col-sm-10">#dateFormat(event.end, "dd mmm yyyy")# #timeFormat(event.end, "HH:mm")#</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-2"><p><strong>Location</strong></p></div>
+		<div class="col-sm-10">#h(event.name)#<cfif len(trim(event.description))>, #h(event.description)#</cfif> <cfif len(trim(event.layoutstyle))>(#h(event.layoutstyle)# style)</cfif></div>
+	</div>
+	<div class="row">
+		<div class="col-sm-2"><p><strong>Status</strong></p></div>
+		<div class="col-sm-10">#h(event.status)#</div>
+	</div>
+	<p><strong>Contact:</strong> #h(event.contactname)# <cfif len(trim(event.contactemail))>(#h(event.contactemail)#)</cfif> <cfif len(trim(event.contactno))>(#h(event.contactno)#)</cfif></p>
+	<cfif len(trim(event.eventdescription))>
+		<div class='well'>#h(event.eventdescription)#</div>
+	</cfif>
 
 <!---================= Resources =================--->
 	<cfif application.rbs.setting.allowResources AND len(event.resourceid)>

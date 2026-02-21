@@ -4,9 +4,11 @@ component extends="Controller" hint="Settings Controller"
 	/**
 	 * @hint Constructor.
 	 */
-	public void function init() {
-		// Permission filters
-		super.init();
+	private function config() {
+		
+		// super.config() disabled during migration;
+// Permission filters
+		// legacy super.init removed for CFWheels2+
 		filters(through="checkPermissionAndRedirect", permission="accessSettings");
 		filters(through="_checkSettingsAdmin");
 		filters(through="denyInDemoMode", only="edit,update");
@@ -59,5 +61,4 @@ component extends="Controller" hint="Settings Controller"
 			redirectTo(route="home", error="Facility to edit settings has been disabled");
 		}
 	}
-
 }

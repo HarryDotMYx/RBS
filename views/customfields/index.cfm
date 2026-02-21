@@ -43,8 +43,8 @@
 									<td>#type#</td>
 									<td>
 										<div class="btn-group">
-											#linkTo(text="<i class='glyphicon glyphicon-edit'></i> Edit", class="btn btn-xs btn-info", action="edittemplate", params="type=#type#", key="#parentmodel#")#
-											#linkTo(text="<i class='glyphicon glyphicon-trash'></i> Delete", class="btn btn-xs btn-danger", action="deletetemplate", key="#parentmodel#", params="type=#type#", confirm='Are you Sure?')#
+											#linkTo(text="<i class='glyphicon glyphicon-edit'></i> Edit", class="btn btn-xs btn-info", action="edittemplate", params="type=#type#", key="#parentmodel#", encode=false)#
+											#linkTo(text="<i class='glyphicon glyphicon-trash'></i> Delete", class="btn btn-xs btn-danger", action="deletetemplate", key="#parentmodel#", params="type=#type#", confirm='Are you Sure?', encode=false)#
 										</div>
 									</td>
 								</tr>
@@ -100,8 +100,8 @@
 										<td>#description#</td>
 										<td>
 											<div class="btn-group">
-												#linkTo(text="<i class='glyphicon glyphicon-edit'></i> Edit", class="btn btn-xs btn-info", action="edit", key=id)#
-												#linkTo(text="<i class='glyphicon glyphicon-trash'></i> Delete", class="btn btn-xs btn-danger", action="delete", key=id, confirm='Are you Sure?')#
+												#linkTo(text="<i class='glyphicon glyphicon-edit'></i> Edit", class="btn btn-xs btn-info", action="edit", key=id, encode=false)#
+												#linkTo(text="<i class='glyphicon glyphicon-trash'></i> Delete", class="btn btn-xs btn-danger", action="delete", key=id, confirm='Are you Sure?', encode=false)#
 											</div>
 										</td>
 									</tr>

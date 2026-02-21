@@ -25,7 +25,7 @@
 	</div>
 	<div class="btn-group  btn-group-justified location-row">
 		<cfloop query="locations">
-			#linkTo(controller="bookings", action="location", key=id, class="all  #toTagSafe(building)# btn btn-sm location-filter btn-default #class# location#id#", text="#name#<br /><small>#description#</small>")#
+			#linkTo(controller="bookings", action="location", key=id, class="all  #toTagSafe(building)# btn btn-sm location-filter btn-default #class# location#id#", text="#name#<br /><small>#description#</small>", encode=false)#
 		</cfloop>
 	</div>
 </div>

@@ -24,7 +24,7 @@
 					</cfloop>
 					<td>
 						<div class="btn-group">
-								#linkTo(text="<i class='glyphicon glyphicon-edit'></i> Edit", class="btn btn-xs btn-info", action="edit", key=id)#
+								#linkTo(text="<i class='glyphicon glyphicon-edit'></i> Edit", class="btn btn-xs btn-info", action="edit", key=id, encode=false)#
 						</div>
 					</td>
 				</tr>

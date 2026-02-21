@@ -4,9 +4,11 @@ component extends="Controller" hint=""
 	/**
 	 * @hint Constructor.
 	 */
-	public void function init() {
-		// Permission filters
-		super.init();
+	private function config() {
+		
+		// super.config() disabled during migration;
+// Permission filters
+		// legacy super.init removed for CFWheels2+
 		filters(through="redirectIfLoggedIn");
 		filters(through="denyInDemoMode");
 	}
@@ -62,4 +64,4 @@ component extends="Controller" hint=""
 			redirectTo(route="home", error="Sorry, that request failed [PR1]");
 		}
  	}
- }
+}

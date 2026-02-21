@@ -56016,9 +56016,11 @@ $(document).ready(function(){
         eventSources: [
          {
                 url: eventsURL,
-                type: 'POST',
+                type: 'GET',
+                dataType: 'json',
                 cache: false,
-                error: function() {
+                error: function(xhr) {
+                    console.error('events fetch failed', xhr && xhr.status, eventsURL);
                     alert('there was an error while fetching events!');
                 }
           }
@@ -56038,15 +56040,25 @@ $(document).ready(function(){
     //----------------Event Click --------------
         eventClick: function(calEvent, jsEvent, view) {
             var specificEvent="";
+            var fallbackView = "/index.cfm?controller=bookings&action=view&key=" + calEvent.id;
             // Deal with url rewriting differing paths
             if(urlrewriting === "off"){
                 specificEvent="&key=" + calEvent.id + "&format=json";
             } else {
                 specificEvent="/" + calEvent.id + "?format=json";
             }
-            $('#eventmodal').modal({
-               remote: eventURL + specificEvent
-             });
+            $.get(eventURL + specificEvent)
+              .done(function(html){
+                if(!html || $.trim(html).length < 40){
+                  window.location.href = fallbackView;
+                  return;
+                }
+                $('#eventmodal-body').html(html);
+                $('#eventmodal').modal('show');
+              })
+              .fail(function(){
+                window.location.href = fallbackView;
+              });
         },
         editable: false
 		});

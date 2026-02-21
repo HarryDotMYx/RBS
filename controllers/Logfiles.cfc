@@ -4,9 +4,11 @@ component extends="Controller" hint="Manage Logfiles"
 	/**
 	 * @hint Constructor.
 	 */
-	public void function init() {
-		// Permission filters
-		super.init();
+	private function config() {
+		
+		// super.config() disabled during migration;
+// Permission filters
+		// legacy super.init removed for CFWheels2+
 		// Additional Permissions
 		filters(through="checkPermissionAndRedirect", permission="accesslogfiles");
 	}

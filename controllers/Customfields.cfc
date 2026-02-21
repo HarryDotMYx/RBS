@@ -4,9 +4,11 @@ component extends="Controller" hint="Custom Fields and Templating"
 	/**
 	 * @hint Constructor.
 	 */
-	public void function init() {
-		// Permission filters
-		super.init();
+	private function config() {
+		
+		// super.config() disabled during migration;
+// Permission filters
+		// legacy super.init removed for CFWheels2+
 		filters(through="checkPermissionAndRedirect", permission="accessCustomfields");
 		filters(through="denyInDemoMode", except="index");
 		useslayout(template=false, only="fieldpicker");
@@ -156,5 +158,4 @@ component extends="Controller" hint="Custom Fields and Templating"
 			customfields=getBlankCustomFields(params.key);
 
 	}
-
 }

@@ -4,7 +4,7 @@ component extends="Model" hint="Settings"
 	/**
 	 * @hint Constructor
 	 */
-	public void function init() {
+	private function config() {
 		// Associations
 
 	}

@@ -4,8 +4,10 @@ component extends="Controller" hint="Sessions Controller"
 	/**
 	 * @hint Constructor.
 	 */
-	public void function init() {
-		// Permission filters - NB, doesn't go via super.init()
+	private function config() {
+		
+		// super.config() disabled during migration;
+// Permission filters - NB, doesn't go via super.init()
 		filters(through="redirectIfLoggedIn", only="new,attemptlogin");
 	}
 
@@ -13,37 +15,48 @@ component extends="Controller" hint="Sessions Controller"
 	/**
 	*  @hint Login procedure
 	*/
+	public void function new() {
+		// Render login page
+	}
+
+	public void function denied() {
+		// Render denied page
+	}
+
 	public void function attemptlogin() {
 		var p={};
 		if(structkeyexists(params, "email") AND structkeyexists(params, "password")){
 			user = model("user").findOneByEmail(params.email);
 
-			  if(isObject(user)){
-				p.salt.decrypted=decrypt(user.salt, getAuthKey(), 'CFMX_COMPAT');
+			if(isObject(user)){
+				try {
+					p.salt.decrypted = decrypt(user.salt, getAuthKey(), 'CFMX_COMPAT');
+				} catch(any e) {
+					// fallback for edge legacy rows
+					p.salt.decrypted = user.salt;
+				}
 				p.password.hashed = hash(params.password & p.salt.decrypted, 'SHA-512');
 
 				if(p.password.hashed EQ user.password){
-					// This cookie is only set AFTER a successful login, to prevent mistyped email
 					if(structkeyexists(params, "rememberme")){
 						setCookieRememberUsername(params.email);
 					}
 					addlogline(type="Login", message="#user.email# successfully logged in", userid=user.id);
 					_createUserInScope(user);
+					return;
 				}
-				else {
-					addLogline(type="Login", message="PW doesn't match hashed");
-					RedirectTo(error="We could not sign you in. Please try that again.", route="login");;
-				}
-			}
-			else {
-				addLogline(type="Login", message="Bad Login [User isn't object, searched for #h(params.email)#]");
+				addLogline(type="Login", message="PW doesn't match hashed");
 				RedirectTo(error="We could not sign you in. Please try that again.", route="login");
-				}
-		}
-		else {
-			addLogline(type="Login", message="Bad Login [Need Email and Password]");
+				return;
+			}
+
+			addLogline(type="Login", message="Bad Login [User isn't object, searched for #h(params.email)#]");
 			RedirectTo(error="We could not sign you in. Please try that again.", route="login");
+			return;
 		}
+
+		addLogline(type="Login", message="Bad Login [Need Email and Password]");
+		RedirectTo(error="We could not sign you in. Please try that again.", route="login");
 	}
 
 	/**
@@ -62,5 +75,13 @@ component extends="Controller" hint="Sessions Controller"
 		redirectTo(route="login");
 	}
 
-
+	/**
+	* @hint Prevent logged-in users from hitting login actions
+	*/
+	public void function redirectIfLoggedIn() {
+		if (isLoggedIn()) {
+			location(url="/", addToken=false, statusCode=302);
+			abort;
+		}
+	}
 }

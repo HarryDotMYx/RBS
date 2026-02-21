@@ -4,7 +4,7 @@ component extends="Model" hint="Event Resource Model"
 	/**
 	 * @hint Constructor
 	 */
-	public void function init() {
+	private function config() {
 		// Associations
 		belongsTo("event");
 		belongsTo("resource");

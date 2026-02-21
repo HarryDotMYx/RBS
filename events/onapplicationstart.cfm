@@ -2,7 +2,8 @@
 <cfscript>
 	try{
 		_loadSettings();
-	} catch(any){
+	} catch(any e){
+		writeLog(file="rbs-startup", type="error", text="_loadSettings failed: " & serializeJSON(e));
 		throw message="Could not load settings - please check your datasource";
 	}
 
@@ -40,12 +41,47 @@
 		}
 
 		for(template in model("template").findAll()){
-			application.rbs.templates["#template.parentmodel#"]["#template.type#"]=template.template;
+			if (!structKeyExists(application.rbs.templates, template.parentmodel)) {
+				application.rbs.templates[template.parentmodel] = {};
+			}
+			// Ignore empty DB templates; fallback to built-in default templates in views
+			if (len(trim(template.template))) {
+				application.rbs.templates[template.parentmodel][template.type] = template.template;
+			}
 		}
 	}
 
-	addShortcode("field", field_callback);
-	addShortcode("output", output_callback);
+	// Wheels 3 compatibility: register shortcode callbacks even when legacy global functions are not auto-included
+	if (!structKeyExists(this, "field_callback")) {
+		this.field_callback = function(attr, content="", tag="") {
+			var result = "";
+			savecontent variable="result" {
+				include "/views/shortcodes/field.cfm";
+			}
+			return result;
+		};
+	}
+	if (!structKeyExists(this, "output_callback")) {
+		this.output_callback = function(attr, content="", tag="") {
+			var result = "";
+			savecontent variable="result" {
+				include "/views/shortcodes/output.cfm";
+			}
+			return result;
+		};
+	}
+
+	// Wheels 3 bootstrap timing: plugin mixins (addShortcode) may not be ready yet.
+	// Register directly into application scope as fallback.
+	if (!structKeyExists(application, "shortcodes") || !isStruct(application.shortcodes)) {
+		application.shortcodes = {};
+	}
+	if (structKeyExists(this, "field_callback") && isCustomFunction(this.field_callback)) {
+		application.shortcodes["field"] = this.field_callback;
+	}
+	if (structKeyExists(this, "output_callback") && isCustomFunction(this.output_callback)) {
+		application.shortcodes["output"] = this.output_callback;
+	}
 
 
 </cfscript>

@@ -4,7 +4,7 @@ component extends="Model" hint="Main Event Object"
 	/**
 	 * @hint Constructor
 	 */
-	public void function init() {
+	private function config() {
 		// Assocations
 		belongsTo("location");
 		hasMany("eventresources");

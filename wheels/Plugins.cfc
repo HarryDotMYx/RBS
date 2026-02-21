@@ -1,282 +1,420 @@
-<cfcomponent output="false">
+component output="false" extends="wheels.Global"{
 
-	<cfset variables.$class = {}>
-	<cfset variables.$class.plugins = {}>
-	<cfset variables.$class.mixins = {}>
-	<cfset variables.$class.mixableComponents = "application,dispatch,controller,model,base,connection,sqlserver,mysql,oracle,postgresql,h2,test">
-	<cfset variables.$class.incompatiblePlugins = "">
-	<cfset variables.$class.dependantPlugins = "">
+	public any function $init(
+		required string pluginPath,
+		boolean deletePluginDirectories = application.wheels.deletePluginDirectories,
+		boolean overwritePlugins = application.wheels.overwritePlugins,
+		boolean loadIncompatiblePlugins = application.wheels.loadIncompatiblePlugins,
+		string wheelsEnvironment = application.wheels.environment,
+		string wheelsVersion = application.wheels.version
+	) {
+		variables.$class = {};
+		variables.$class.plugins = {};
+		variables.$class.pluginMeta = {};
+		variables.$class.mixins = {};
+		variables.$class.mixableComponents = "application,dispatch,controller,mapper,model,base,sqlserver,mysql,postgresql,h2,test";
+		variables.$class.incompatiblePlugins = "";
+		variables.$class.dependantPlugins = "";
+		StructAppend(variables.$class, arguments);
+		/* handle pathing for different operating systems */
+		variables.$class.pluginPathFull = ReplaceNoCase(ExpandPath(variables.$class.pluginPath), "\", "/", "all");
+		/* sort direction */
+		variables.sort = "ASC";
+		/* extract out plugins */
+		$pluginsExtract();
+		/* remove orphan plugin directories */
+		if (variables.$class.deletePluginDirectories) {
+			$pluginDelete();
+		}
+		/* process plugins */
+		$pluginsProcess();
+		/* get versions */
+		$pluginMetaData();
+		/* process mixins */
+		$processMixins();
+		/* dependencies */
+		$determineDependency();
+		return this;
+	}
 
+	public struct function $pluginFolders() {
+		local.plugins = {};
+		local.folders = $folders();
+		// Within plugin folders, grab info about each plugin and package up into a struct.
+		for (local.i = 1; i <= local.folders.recordCount; i++) {
+			// For *nix, we need a case-sensitive name for the plugin component, so we must reference its CFC file name.
+			local.subfolder = DirectoryList("#local.folders["directory"][i]#/#local.folders["name"][i]#", false, "query");
+			local.pluginCfc = $query(
+				dbtype = "query",
+				query = local.subfolder,
+				sql = "SELECT name FROM query WHERE LOWER(name) = '#LCase(local.folders["name"][i])#.cfc'"
+			);
+			local.temp = {};
+			if (structKeyExists(server, "boxlang")) {
+				// BoxLang compatibility: Handle case where query returns no results
+				if (local.pluginCfc.recordCount > 0) {
+					local.temp.name = Replace(local.pluginCfc.name, ".cfc", "");
+				} else {
+					local.cfcFiles = $query(
+						dbtype = "query",
+						query = local.subfolder,
+						sql = "SELECT name FROM query WHERE LOWER(name) LIKE '%.cfc' ORDER BY name"
+					);
+					if (local.cfcFiles.recordCount > 0) {
+						local.temp.name = Replace(local.cfcFiles.name, ".cfc", "");
+					} else {
+						local.folderPattern = local.folders["name"][i];
+						local.possibleFiles = $query(
+							dbtype = "query", 
+							query = local.subfolder,
+							sql = "SELECT name FROM query WHERE LOWER(name) LIKE '%#LCase(local.folderPattern)#%.cfc'"
+						);
+						if (local.possibleFiles.recordCount > 0) {
+							local.temp.name = Replace(local.possibleFiles.name, ".cfc", "");
+						} else {
+							local.temp.name = local.folders["name"][i];
+						}
+					}
+				}
+				local.temp.folderPath = $fullPathToPlugin(local.folders["name"][i]);
+				local.temp.componentName = local.folders["name"][i] & "." & local.temp.name;
+			} else {
+				local.temp.name = Replace(local.pluginCfc.name, ".cfc", "");
+				local.temp.folderPath = $fullPathToPlugin(local.folders["name"][i]);
+				local.temp.componentName = local.folders["name"][i] & "." & Replace(local.pluginCfc.name, ".cfc", "");
+			}
+			local.plugins[local.folders["name"][i]] = local.temp;
+		}
+		return local.plugins;
+	}
 
-	<cffunction name="init">
-		<cfargument name="pluginPath" type="string" required="true" hint="relative path to the plugin folder">
-		<cfargument name="deletePluginDirectories" type="boolean" required="false" default="#application.wheels.deletePluginDirectories#">
-		<cfargument name="overwritePlugins" type="boolean" required="false" default="#application.wheels.overwritePlugins#">
-		<cfargument name="loadIncompatiblePlugins" type="boolean" required="false" default="#application.wheels.loadIncompatiblePlugins#">
-		<cfargument name="wheelsEnvironment" type="string" required="false" default="#application.wheels.environment#">
-		<cfargument name="wheelsVersion" type="string" required="false" default="#application.wheels.version#">
-		<cfset var loc = {}>
+	public struct function $pluginFiles() {
+		// get all plugin zip files
+		local.plugins = {};
+		local.files = $files();
+		for (local.i = 1; i <= local.files.recordCount; i++) {
+			local.name = ListFirst(local.files["name"][i], "-");
+			local.temp = {};
+			local.temp.file = $fullPathToPlugin(local.files["name"][i]);
+			local.temp.name = local.files["name"][i];
+			local.temp.folderPath = $fullPathToPlugin(LCase(local.name));
+			if (StructKeyExists(server, "boxlang") && !local.temp.folderPath.startsWith("/")) {
+				local.temp.folderPath = "/" & local.temp.folderPath;
+			}
+			local.temp.folderExists = DirectoryExists(local.temp.folderPath);
+			local.plugins[local.name] = local.temp;
+		};
+		return local.plugins;
+	}
 
-		<cfset structAppend(variables.$class, arguments)>
-		<!--- handle pathing for different operating systems --->
-		<cfset variables.$class.pluginPathFull = ReplaceNoCase(ExpandPath(variables.$class.pluginPath), "\", "/", "all")>
-		<!--- extract out plugins --->
-		<cfset $pluginsExtract()>
-		<!--- remove orphan plugin directories --->
-		<cfif variables.$class.deletePluginDirectories>
-			<cfset $pluginDelete()>
-		</cfif>
-		<!--- process plugins --->
-		<cfset $pluginsProcess()>
-		<!--- process mixins --->
-		<cfset $processMixins()>
-		<!--- incompatibility --->
-		<cfset $determineIncompatible()>
-		<!--- dependancies --->
-		<cfset $determineDependancy()>
+	public void function $pluginsExtract() {
+		// get all plugin zip files
+		local.plugins = $pluginFiles();
+		for (local.p in local.plugins) {
+			local.plugin = local.plugins[local.p];
+			if (!local.plugin.folderExists || (local.plugin.folderExists && variables.$class.overwritePlugins)) {
+				if (!local.plugin.folderExists) {
+					try {
+						DirectoryCreate(local.plugin.folderPath);
+					} catch (any e) {
+						//
+					}
+				}
+				$zip(action = "unzip", destination = local.plugin.folderPath, file = local.plugin.file, overwrite = true);
+			}
+		};
+	}
 
-		<cfreturn this>
-	</cffunction>
+	public void function $pluginDelete() {
+		local.folders = $pluginFolders();
+		// put zip files into a list
+		local.files = $pluginFiles();
+		local.files = StructKeyList(local.files);
+		// loop through the plugins folders
+		for (local.iFolder in $pluginFolders()) {
+			local.folder = local.folders[local.iFolder];
+			// see if a folder is in the list of plugin files
+			if (!ListContainsNoCase(local.files, local.folder.name)) {
+				if (StructKeyExists(server, "boxlang") && !local.folder.folderPath.startsWith("/")) {
+					local.folder.folderPath = "/" & local.folder.folderPath;
+				}
+				DirectoryDelete(local.folder.folderPath, true);
+			}
+		};
+	}
 
+	public void function $pluginsProcess() {
+		local.plugins = $pluginFolders();
+		local.pluginKeys = ListSort(StructKeyList(local.plugins), "textnocase", variables.sort);
+		if (SpanExcluding(variables.$class.wheelsVersion, " ") == "@build.version@") {
+			local.wheelsVersion = "0.0.0";
+		} else {
+			local.wheelsVersion = SpanExcluding(variables.$class.wheelsVersion, " ");
+		}
+		for (local.pluginKey in local.pluginKeys) {
+			local.pluginValue = local.plugins[local.pluginKey];
+			local.plugin = CreateObject("component", $componentPathToPlugin(local.pluginKey, local.pluginValue.name)).init();
+			if (
+				!StructKeyExists(local.plugin, "version")
+				|| ListFind(local.plugin.version, local.wheelsVersion)
+				|| variables.$class.loadIncompatiblePlugins
+			) {
+				variables.$class.plugins[local.pluginKey] = local.plugin;
+				// If plugin author has specified compatibility version as 2.0, only check against that major version
+				// If they've specified 2.0.1, then be more specific
+				if (StructKeyExists(local.plugin, "version")) {
+					if (
+						(ListLen(local.plugin.version, ".") > 2 && !ListFind(local.plugin.version, local.wheelsVersion))
+						|| (
+							ListLen(local.plugin.version, ".") == 2
+							&& !ListFind(local.plugin.version, ListDeleteAt(local.wheelsVersion, 3, "."))
+						)
+					) {
+						variables.$class.incompatiblePlugins = ListAppend(variables.$class.incompatiblePlugins, local.pluginKey);
+					}
+				}
+			}
+		};
+	}
 
-	<cffunction name="$pluginFolders" returntype="struct">
-		<cfset var loc = {}>
+	/**
+	 * Attempt to extract version numbers from box.json and/or corresponding .zip files
+	 * Storing box.json data too as this may be useful later
+	 */
+	public void function $pluginMetaData() {
+		for (local.plugin in variables.$class.plugins) {
+			variables.$class.pluginMeta[local.plugin] = {"version" = "", "boxjson" = {}};
+			local.boxJsonLocation = $fullPathToPlugin(local.plugin & "/" & 'box.json');
+			if (FileExists(local.boxJsonLocation)) {
+				local.boxJson = DeserializeJSON(FileRead(local.boxJsonLocation));
+				variables.$class.pluginMeta[local.plugin]["boxjson"] = local.boxJson;
+				if (StructKeyExists(local.boxJson, "version")) {
+					variables.$class.pluginMeta[local.plugin]["version"] = local.boxJson.version;
+				}
+			}
+		}
+	}
 
-		<cfset loc.plugins = {}>
-		<cfset loc.folders = $folders()>
+	public void function $determineDependency() {
+		for (local.iPlugins in variables.$class.plugins) {
+			local.pluginMeta = GetMetadata(variables.$class.plugins[local.iPlugins]);
+			if (StructKeyExists(local.pluginMeta, "dependency")) {
+				for (local.iDependency in local.pluginMeta.dependency) {
+					local.iDependency = Trim(local.iDependency);
+					if (!StructKeyExists(variables.$class.plugins, local.iDependency)) {
+						variables.$class.dependantPlugins = ListAppend(
+							variables.$class.dependantPlugins,
+							Reverse(SpanExcluding(Reverse(local.pluginMeta.name), ".")) & "|" & local.iDependency
+						);
+					}
+				};
+			}
+		};
+	}
 
-		<cfloop query="loc.folders">
-			<cfset loc.temp = {}>
-			<cfset loc.temp.name = loc.folders.name>
-			<cfset loc.temp.folderPath = $fullPathToPlugin(loc.folders.name)>
-			<cfset loc.temp.componentName = lcase(loc.folders.name) & "." & loc.folders.name>
-			<cfset loc.plugins[loc.folders.name] = loc.temp>
-		</cfloop>
+	/**
+	 * MIXINS
+	 */
 
-		<cfreturn loc.plugins>
-	</cffunction>
+	public void function $processMixins() {
+		// setup a container for each mixableComponents type
+		for (local.iMixableComponents in variables.$class.mixableComponents) {
+			variables.$class.mixins[local.iMixableComponents] = {};
+		}
 
+		// get a sorted list of plugins so that we run through them the same on
+		// every platform
+		local.pluginKeys = ListToArray(ListSort(StructKeyList(variables.$class.plugins), "textnocase", variables.sort));
 
-	<cffunction name="$pluginFiles" returntype="struct">
-		<cfset var loc = {}>
+		for (local.iPlugin in local.pluginKeys) {
+			// reference the plugin
+			local.plugin = variables.$class.plugins[local.iPlugin];
+			// grab meta data of the plugin
+			local.pluginMeta = GetMetadata(local.plugin);
+			if (
+				!StructKeyExists(local.pluginMeta, "environment")
+				|| ListFindNoCase(local.pluginMeta.environment, variables.$class.wheelsEnvironment)
+			) {
+				// by default and for backwards compatibility, we inject all methods
+				// into all objects
+				local.pluginMixins = "global";
 
-		<!--- get all plugin zip files --->
-		<cfset loc.files = $files()>
-		<cfset loc.plugins = {}>
+				// if the component has a default mixin value, assign that value
+				if (StructKeyExists(local.pluginMeta, "mixin")) {
+					local.pluginMixins = local.pluginMeta["mixin"];
+				}
 
-		<cfloop query="loc.files">
-			<cfset loc.name = ListFirst(name, "-")>
-			<cfset loc.temp = {}>
-			<cfset loc.temp.file = $fullPathToPlugin(loc.files.name)>
-			<cfset loc.temp.name = loc.files.name>
-			<cfset loc.temp.folderPath = lcase($fullPathToPlugin(loc.name))>
-			<cfset loc.temp.folderExists = directoryExists(loc.temp.folderPath)>
-			<cfset loc.plugins[loc.name] = loc.temp>
-		</cfloop>
+				// loop through all plugin methods and enter injection info accordingly
+				// (based on the mixin value on the method or the default one set on the
+				// entire component)
+				local.pluginMethods = StructKeyList(local.plugin);
 
-		<cfreturn loc.plugins>
-	</cffunction>
+				for (local.iPluginMethods in local.pluginMethods) {
+					if (IsCustomFunction(local.plugin[local.iPluginMethods]) && local.iPluginMethods neq "init") {
+						local.methodMeta = GetMetadata(local.plugin[local.iPluginMethods]);
+						local.methodMixins = local.pluginMixins;
+						if (StructKeyExists(local.methodMeta, "mixin")) {
+							local.methodMixins = local.methodMeta["mixin"];
+						}
 
+						// mixin all methods except those marked as none
+						if (local.methodMixins != "none") {
+							for (local.iMixableComponent in variables.$class.mixableComponents) {
+								if (local.methodMixins == "global" || ListFindNoCase(local.methodMixins, local.iMixableComponent)) {
+									// cfformat-ignore-start
+									variables.$class.mixins[local.iMixableComponent][local.iPluginMethods] = local.plugin[local.iPluginMethods];
+									// cfformat-ignore-end
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 
-	<cffunction name="$pluginsExtract">
-		<cfset var loc = {}>
-		<!--- get all plugin zip files --->
-		<cfset loc.plugins = $pluginFiles()>
+	/**
+   * Applies mixins to a component based on application configurations.
+   */
+  public any function $initializeMixins(required struct variablesScope) {
+		// We use $wheels here since these variables get placed in the variables scope of all objects.
+		// This way we sure they don't clash with other Wheels variables or any variables the developer may set.
+		if (IsDefined("application") && StructKeyExists(application, "$wheels")) {
+			$wheels.appKey = "$wheels";
+		} else {
+			$wheels.appKey = "wheels";
+		}
 
-		<cfloop collection="#loc.plugins#" item="loc.p">
-			<cfset loc.plugin = loc.plugins[loc.p]>
-			<cfif not loc.plugin.folderExists OR (loc.plugin.folderExists AND variables.$class.overwritePlugins)>
-				<cfif not loc.plugin.folderExists>
-					<cfdirectory action="create" directory="#loc.plugin.folderPath#">
-				</cfif>
-				<cfzip action="unzip" destination="#loc.plugin.folderPath#" file="#loc.plugin.file#" overwrite="true" />
-			</cfif>
-		</cfloop>
+		if (IsDefined("application") && !StructIsEmpty(application[$wheels.appKey].mixins)) {
+			$wheels.metaData = GetMetadata(variablesScope.this);
+			if (StructKeyExists($wheels.metaData, "displayName")) {
+				$wheels.className = $wheels.metaData.displayName;
+			} else if (findNoCase("controllers", $wheels.metaData.fullname)){
+				$wheels.className = "controller";
+			} else if (findNoCase("models", $wheels.metaData.fullname)){
+				$wheels.className = "model";
+			} else if (findNoCase("tests", $wheels.metaData.fullname)){
+				$wheels.className = "test";
+			} else {
+				$wheels.className = Reverse(SpanExcluding(Reverse($wheels.metaData.name), "."));
+			}
+			if (StructKeyExists(application[$wheels.appKey].mixins, $wheels.className)) {
+				if (!StructKeyExists(variablesScope, "core")) {
+					if (application[$wheels.appKey].serverName == "Railo") {
+						// this is to work around a railo bug (https://jira.jboss.org/browse/RAILO-936)
+						// NB, fixed in Railo 3.2.0, so assume this is fixed in all lucee versions
+						variablesScope.core = Duplicate(variablesScope);
+					} else {
+						variablesScope.core = {};
+						StructAppend(variablesScope.core, variablesScope);
+						StructDelete(variablesScope.core, "$wheels");
+					}
+				}
+				StructAppend(variablesScope, application[$wheels.appKey].mixins[$wheels.className], true);
 
-	</cffunction>
+				if (StructKeyExists(variablesScope, "this")) {
+					StructAppend(variablesScope.this, application[$wheels.appKey].mixins[$wheels.className], true);
+				}
 
+				if (StructKeyExists(variablesScope.core, "this")) {
+					StructAppend(variablesScope.core.this, application[$wheels.appKey].mixins[$wheels.className], true);
+				}
+			}
 
-	<cffunction name="$pluginDelete">
- 		<cfset var loc = {}>
-		<!--- get all plugin folders --->
-		<cfset loc.folders = $pluginFolders()>
-		<!--- get all plugin zip files --->
-		<cfset loc.files = $pluginFiles()>
-		<!--- put zip files into a list  --->
-		<cfset loc.files = StructKeyList(loc.files)>
-		<!--- loop through the plugins folders --->
-		<cfloop collection="#loc.folders#" item="loc.iFolder">
-			<cfset loc.folder = loc.folders[loc.iFolder]>
-			<!--- see if a folder is in the list of plugin files --->
-			<cfif !ListContainsNoCase(loc.files, loc.folder.name)>
-				<cfdirectory action="delete" directory="#loc.folder.folderPath#" recurse="true">
- 			</cfif>
- 		</cfloop>
+			// Get rid of any extra data created in the variables scope.
+			if (StructKeyExists(variablesScope, "$wheels")) {
+				StructDelete(variablesScope, "$wheels");
+			}
+		}
+		return variablesScope;
+	}
 
- 	</cffunction>
+	/**
+	 * GETTERS
+	 */
 
+	public any function getPlugins() {
+		return variables.$class.plugins;
+	}
 
-	<cffunction name="$pluginsProcess">
-		<cfset var loc = {}>
+	public any function getPluginMeta() {
+		return variables.$class.pluginMeta;
+	}
 
-		<cfset loc.plugins = $pluginFolders()>
-		<cfset loc.wheelsVersion = SpanExcluding(variables.$class.wheelsVersion, " ")>
-		<cfloop collection="#loc.plugins#" item="loc.iPlugins">
-			<cfset loc.plugin = createobject("component", $componentPathToPlugin(loc.iPlugins)).init()>
-			<cfif not StructKeyExists(loc.plugin, "version") OR ListFind(loc.plugin.version, loc.wheelsVersion) OR variables.$class.loadIncompatiblePlugins>
-				<cfset variables.$class.plugins[loc.iPlugins] = loc.plugin>
-				<cfif StructKeyExists(loc.plugin, "version") AND not ListFind(loc.plugin.version, loc.wheelsVersion)>
-					<cfset variables.$class.incompatiblePlugins = ListAppend(variables.$class.incompatiblePlugins, loc.iPlugins)>
-				</cfif>
-			</cfif>
-		</cfloop>
-	</cffunction>
+	public any function getIncompatiblePlugins() {
+		return variables.$class.incompatiblePlugins;
+	}
 
+	public any function getDependantPlugins() {
+		return variables.$class.dependantPlugins;
+	}
 
-	<cffunction name="$determineIncompatible">
-		<cfset var loc = {}>
-		<cfset loc.excludeMethods = "init,version,pluginVersion">
-		<cfset loc.loadedMethods = {}>
+	public any function getMixins() {
+		return variables.$class.mixins;
+	}
 
-		<cfloop collection="#variables.$class.plugins#" item="loc.iPlugins">
-			<cfset loc.plugin = variables.$class.plugins[loc.iPlugins]>
-			<cfloop collection="#loc.plugin#" item="loc.method">
-				<cfif not ListFindNoCase(loc.excludeMethods, loc.method)>
-					<cfif StructKeyExists(loc.loadedMethods, loc.method)>
-						<cfthrow type="Wheels.IncompatiblePlugin" message="#loc.iPlugins# is incompatible with a previously installed plugin." extendedInfo="Make sure none of the plugins you have installed override the same CFWheels functions.">
-					<cfelse>
-						<cfset loc.loadedMethods[loc.method] = "">
-					</cfif>
-				</cfif>
-			</cfloop>
-		</cfloop>
+	public any function getMixableComponents() {
+		return variables.$class.mixableComponents;
+	}
 
-	</cffunction>
+	public any function inspect() {
+		return variables;
+	}
 
+	/**
+	 * PRIVATE
+	 */
 
-	<cffunction name="$determineDependancy">
-		<cfset var loc = {}>
+	public string function $fullPathToPlugin(required string folder) {
+		return ListAppend(variables.$class.pluginPathFull, arguments.folder, "/");
+	}
 
-		<cfloop collection="#variables.$class.plugins#" item="loc.iPlugins">
-			<cfset loc.pluginMeta = GetMetaData(variables.$class.plugins[loc.iPlugins])>
-			<cfif StructKeyExists(loc.pluginMeta, "dependency")>
-				<cfloop list="#loc.pluginMeta.dependency#" index="loc.iDependency">
-					<cfset loc.iDependency = trim(loc.iDependency)>
-					<cfif not StructKeyExists(variables.$class.plugins, loc.iDependency)>
-						<cfset variables.$class.dependantPlugins = ListAppend(variables.$class.dependantPlugins, Reverse(SpanExcluding(Reverse(loc.pluginMeta.name), ".")) & "|" & loc.iDependency)>
-					</cfif>
-				</cfloop>
-			</cfif>
-		</cfloop>
+	public string function $componentPathToPlugin(required string folder, required string file) {
+		// BoxLang compatibility: Handle component path construction more carefully
+		if (structKeyExists(server, "boxlang")) {
+			local.basePath = application[$appKey()].pluginComponentPath;
+			local.fileName = Len(Trim(arguments.file)) ? arguments.file : arguments.folder;
+			if (Find("/", local.basePath)) {
+				local.basePath = Replace(local.basePath, "/", ".", "all");
+				local.basePath = REReplace(local.basePath, "^\.+", "", "all");
+			}
+			
+			local.componentPath = "#local.basePath#.#arguments.folder#.#local.fileName#";
+			local.componentPath = REReplaceNoCase(local.componentPath, "\.+$", "", "all");
 
-	</cffunction>
+			return local.componentPath;
+		} else {
+			return "#application[$appKey()].pluginComponentPath#.#arguments.folder#.#arguments.file#";
+		}
+	}
 
+	public query function $folders() {
+		local.query = $directory(
+			action = "list",
+			directory = variables.$class.pluginPathFull,
+			type = "dir",
+			sort = "name #variables.sort#"
+		);
+		return $query(
+			dbtype = "query",
+			query = local.query,
+			sql = "select * from query where name not like '.%' ORDER BY name #variables.sort#"
+		);
+	}
 
-	<!--- mixins --->
+	public query function $files() {
+		local.query = $directory(
+			action = "list",
+			directory = variables.$class.pluginPathFull,
+			filter = "*.zip",
+			type = "file",
+			sort = "name #variables.sort#"
+		);
+		return $query(
+			dbtype = "query",
+			query = local.query,
+			sql = "select * from query where name not like '.%' ORDER BY name #variables.sort#"
+		);
+	}
 
-
-	<cffunction name="$processMixins">
-		<cfset var loc = {}>
-		<!--- setup a container for each mixableComponents type --->
-		<cfloop list="#variables.$class.mixableComponents#" index="loc.iMixableComponents">
-			<cfset variables.$class.mixins[loc.iMixableComponents] = {}>
-		</cfloop>
-		<cfloop collection="#variables.$class.plugins#" item="loc.iPlugin">
-			<!--- reference the plugin --->
-			<cfset loc.plugin = variables.$class.plugins[loc.iPlugin]>
-			<!--- grab meta data of the plugin --->
-			<cfset loc.pluginMeta = GetMetaData(loc.plugin)>
-			<cfif not StructKeyExists(loc.pluginMeta, "environment") OR ListFindNoCase(loc.pluginMeta.environment, variables.$class.wheelsEnvironment)>
-				<!--- by default and for backwards compatibility, we inject all methods into all objects --->
-				<cfset loc.pluginMixins = "global">
-				<cfif StructKeyExists(loc.pluginMeta, "mixin")>
-					<!--- if the component has a default mixin value, assign that value --->
-					<cfset loc.pluginMixins = loc.pluginMeta["mixin"]>
-				</cfif>
-				<!--- loop through all plugin methods and enter injection info accordingly (based on the mixin value on the method or the default one set on the entire component) --->
-				<cfset loc.pluginMethods = StructKeyList(loc.plugin)>
-				<cfloop list="#loc.pluginMethods#" index="loc.iPluginMethods">
-					<cfif IsCustomFunction(loc.plugin[loc.iPluginMethods]) AND loc.iPluginMethods NEQ "init">
-						<cfset loc.methodMeta = GetMetaData(loc.plugin[loc.iPluginMethods])>
-						<cfset loc.methodMixins = loc.pluginMixins>
-						<cfif StructKeyExists(loc.methodMeta, "mixin")>
-							<cfset loc.methodMixins = loc.methodMeta["mixin"]>
-						</cfif>
-						<!--- mixin all methods except those marked as none --->
-						<cfif loc.methodMixins NEQ "none">
-							<cfloop list="#variables.$class.mixableComponents#" index="loc.iMixableComponent">
-								<cfif loc.methodMixins EQ "global" OR ListFindNoCase(loc.methodMixins, loc.iMixableComponent)>
-									<cfset variables.$class.mixins[loc.iMixableComponent][loc.iPluginMethods] = loc.plugin[loc.iPluginMethods]>
-								</cfif>
-							</cfloop>
-						</cfif>
-					</cfif>
-				</cfloop>
-			</cfif>
-		</cfloop>
-	</cffunction>
-
-
-	<!--- getters --->
-
-
-	<cffunction name="getPlugins">
-		<cfreturn variables.$class.plugins>
-	</cffunction>
-
-	<cffunction name="getIncompatiblePlugins">
-		<cfreturn variables.$class.incompatiblePlugins>
-	</cffunction>
-
-	<cffunction name="getDependantPlugins">
-		<cfreturn variables.$class.dependantPlugins>
-	</cffunction>
-
-	<cffunction name="getMixins">
-		<cfreturn variables.$class.mixins>
-	</cffunction>
-
-	<cffunction name="getMixableComponents">
-		<cfreturn variables.$class.mixableComponents>
-	</cffunction>
-
-	<cffunction name="inspect">
-		<cfreturn variables>
-	</cffunction>
-
-	<!--- private methods --->
-
-	<cffunction name="$fullPathToPlugin">
-		<cfargument name="folder" type="string" required="true">
-		<cfreturn ListAppend(variables.$class.pluginPathFull, arguments.folder, "/")>
-	</cffunction>
-
-	<cffunction name="$componentPathToPlugin">
-		<cfargument name="folder" type="string" required="true">
-		<cfset var loc = {}>
-		<cfset loc.path = [ListChangeDelims(variables.$class.pluginPath, ".", "/"), arguments.folder, arguments.folder]>
-		<cfreturn ArrayToList(loc.path, ".")>
-	</cffunction>
-
-	<cffunction name="$folders" returntype="query">
-		<cfset var q = "">
-
-		<cfdirectory action="list" directory="#variables.$class.pluginPathFull#" type="dir" name="q">
-		<cfquery name="q" dbtype="query">
-		select * from q where name not like '.%'
-		</cfquery>
-		<cfreturn q>
-	</cffunction>
-
-	<cffunction name="$files" returntype="query">
-		<cfset var q = "">
-
-		<cfdirectory directory="#variables.$class.pluginPathFull#" action="list" filter="*.zip" type="file" sort="name DESC" name="q">
-		<cfquery name="q" dbtype="query">
-		select * from q where name not like '.%' order by name
-		</cfquery>
-
-		<cfreturn q>
-	</cffunction>
-
-</cfcomponent>
+}

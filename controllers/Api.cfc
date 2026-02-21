@@ -4,9 +4,11 @@ component extends="Controller" hint="RSS/ICal Etc"
 	/**
 	 * @hint Constructor.
 	 */
-	public void function init() {
+	private function config() {
 
-		// Permissions (no super.init())
+		
+		// super.config() disabled during migration;
+// Permissions (no super.init())
 		filters(through="f_isValidAPIRequest", except="index");
 		filters(through="checkPermissionAndRedirect", permission="allowAPI", only="index");
 
@@ -125,6 +127,4 @@ component extends="Controller" hint="RSS/ICal Etc"
 			redirectTo(route="denied", error="No API Authentication Token Present");
 		}
 	}
-
 }
-

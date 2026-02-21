@@ -1,0 +1,50 @@
+{
+  "datasources": {
+    "roombooking": {
+      "dbdriver": "MySQL",
+      "host": "db",
+      "port": "3306",
+      "database": "roombooking",
+      "username": "roombooking",
+      "password": "roombooking123",
+      "connectionLimit": "100",
+      "connectionTimeout": "1",
+      "metaCacheTimeout": "60000",
+      "blob": true,
+      "clob": true,
+      "validate": false,
+      "storage": false,
+      "allowedSelect": true,
+      "allowedInsert": true,
+      "allowedUpdate": true,
+      "allowedDelete": true,
+      "allowedCreate": true,
+      "allowedAlter": true,
+      "allowedDrop": true,
+      "custom": "useUnicode=true&characterEncoding=UTF-8"
+    },
+    "app": {
+      "dbdriver": "MySQL",
+      "host": "db",
+      "port": "3306",
+      "database": "roombooking",
+      "username": "roombooking",
+      "password": "roombooking123",
+      "connectionLimit": "100",
+      "connectionTimeout": "1",
+      "metaCacheTimeout": "60000",
+      "blob": true,
+      "clob": true,
+      "validate": false,
+      "storage": false,
+      "allowedSelect": true,
+      "allowedInsert": true,
+      "allowedUpdate": true,
+      "allowedDelete": true,
+      "allowedCreate": true,
+      "allowedAlter": true,
+      "allowedDrop": true,
+      "custom": "useUnicode=true&characterEncoding=UTF-8"
+    }
+  }
+}

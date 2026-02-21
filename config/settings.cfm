@@ -17,6 +17,9 @@ set(reloadPassword="roombooking");
 // Environment-agnostic settings
 set(assetQueryString=true);
 
+// Legacy app compatibility: prevent helper-generated HTML snippets from being escaped as plain text
+set(encodeHtmlTags=false);
+
 // set to false for plugin development
 set(deletePluginDirectories=false);
 

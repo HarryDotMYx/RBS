@@ -4,7 +4,7 @@ component extends="Model" hint="User Model"
 	/**
 	 * @hint Constructor
 	 */
-	public void function init() {
+	private function config() {
 		property(name="fullname", sql="CONCAT(firstname, ' ', lastname)");
 		beforeSave("sanitize,securePassword");
 		validatesFormatOf(property="email", type="email");

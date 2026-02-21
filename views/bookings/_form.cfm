@@ -13,56 +13,32 @@
 		#processShortCodes(application.rbs.templates.event.form)#
 		<cfelse>
 
-			<!--- Default Template--->
-			<cfsavecontent variable="eventTemplate">
-				<fieldset>
-					<legend>Event Details</legend>
-					<div class="row">
-						<div class="col-md-4">
-							[field id='title']
-						</div>
-						<div class="col-md-4">
-							[field id='locationid']
-						</div>
-						<div class="col-md-2">
-							[field id='layoutstyle']
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-md-4">
-							[field id='start']
-						</div>
-						<div class="col-md-4">
-							[field id='end']
-						</div>
-						<div class="col-md-4">
-							[field id='allDay']
-						</div>
-					</div>
-					</fieldset>
-						[field id='description']
-					<fieldset>
-						<legend>Contact Details</legend>
-						<div class="row">
-							<div class="col-sm-4">
-								[field id='contactname']
- 							</div>
-							<div class="col-sm-4">
-								[field id='contactno']
- 							</div>
-							<div class="col-sm-4">
-								[field id='contactemail']
-							</div>
-						</div>
-						<div class="row">
-							<div class="col-sm-6">
-								[field id='emailcontact']
-							</div>
-						</div>
-					</fieldset>
-				</cfsavecontent>
+			<!--- Default Template (direct fields; Wheels 3 migration fallback) --->
+			<fieldset>
+				<legend>Event Details</legend>
+				<div class="row"> 
+					<div class="col-md-4">#textField(objectName="event", property="title", label="Title")#</div>
+					<div class="col-md-4">#select(objectName="event", property="locationid", options=locations, textField="name", valueField="id", includeBlank="Choose Location", label="Location")#</div>
+					<div class="col-md-2">#textField(objectName="event", property="layoutstyle", label="Layout")#</div>
+				</div>
+				<div class="row"> 
+					<div class="col-md-4">#textField(objectName="event", property="start", label="Start", class="form-control datetimepicker")#</div>
+					<div class="col-md-4">#textField(objectName="event", property="end", label="End", class="form-control datetimepicker")#</div>
+					<div class="col-md-4">#checkBox(objectName="event", property="allDay", label="All Day")#</div>
+				</div>
 			</fieldset>
-			#processShortCodes(eventTemplate)#
+			#textArea(objectName="event", property="description", label="Description")#
+			<fieldset>
+				<legend>Contact Details</legend>
+				<div class="row"> 
+					<div class="col-sm-4">#textField(objectName="event", property="contactname", label="Contact Name")#</div>
+					<div class="col-sm-4">#textField(objectName="event", property="contactno", label="Contact No")#</div>
+					<div class="col-sm-4">#textField(objectName="event", property="contactemail", label="Contact Email")#</div>
+				</div>
+				<div class="row"> 
+					<div class="col-sm-6">#checkBox(objectName="event", property="emailcontact", label="Email Contact")#</div>
+				</div>
+			</fieldset>
 			#includePartial(partial="/common/form/customfields")#
 		</cfif>
 

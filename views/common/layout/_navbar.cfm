@@ -23,19 +23,19 @@
            <li class="dropdown">
             <a href="##" class="dropdown-toggle" data-toggle="dropdown"><span class='glyphicon glyphicon-calendar'></span> Events <b class="caret"></b></a>
             <ul class="dropdown-menu">
-                <li>#linkTo(route="home", text="<span class='glyphicon glyphicon-calendar'></span> Calendar")#</li>
+                <li>#linkTo(route="root", text="<span class='glyphicon glyphicon-calendar'></span> Calendar", encode=false)#</li>
                 <!--- Day view deprecated in it's current form --->
-                <!---li>#linkTo(controller="bookings", action="day", text="<span class='glyphicon glyphicon-th'></span> Day")#</li--->
-                <li>#linkTo(controller="bookings", action="list", text="<span class='glyphicon glyphicon-list'></span> List")#</li>
+                <!---li>#linkTo(controller="bookings", action="day", text="<span class='glyphicon glyphicon-th'></span> Day", encode=false)#</li--->
+                <li>#linkTo(controller="bookings", action="list", text="<span class='glyphicon glyphicon-list'></span> List", encode=false)#</li>
                  <cfif checkpermission("allowAPI")>
-                    <li>#linkTo(controller="api",  text="<span class='glyphicon glyphicon-cloud-download'></span> Data Feeds")#</li>
+                    <li>#linkTo(controller="api",  text="<span class='glyphicon glyphicon-cloud-download'></span> Data Feeds", encode=false)#</li>
                  </cfif>
-                <li>#linkTo(controller="locations", action="list", text="<span class='glyphicon glyphicon-list'></span> Locations")#</li>
+                <li>#linkTo(controller="locations", action="list", text="<span class='glyphicon glyphicon-list'></span> Locations", encode=false)#</li>
             </ul>
             </li>
                </cfif>
               <cfif checkpermission("allowRoomBooking")>
-                <li>#linkTo(controller="bookings", action="add", text="<span class='glyphicon glyphicon-plus-sign'></span> Book a Room")#</li>
+                <li>#linkTo(controller="bookings", action="add", text="<span class='glyphicon glyphicon-plus-sign'></span> Book a Room", encode=false)#</li>
               </cfif>
             </ul>
           </cfif>
@@ -46,31 +46,31 @@
             <a href="##" class="dropdown-toggle" data-toggle="dropdown"><span class='glyphicon glyphicon-cog'></span> Settings <b class="caret"></b></a>
             <ul class="dropdown-menu">
             <cfif checkPermission("updateOwnAccount")>
-               <li>#linkTo(route="myaccount", text="<span class='glyphicon glyphicon-user'></span> My Account")#</li>
+               <li>#linkTo(route="myaccount", text="<span class='glyphicon glyphicon-user'></span> My Account", encode=false)#</li>
             </cfif>
              <cfif checkpermission("accessUsers")>
-               <li>#linkTo(controller="users",  text="<span class='glyphicon glyphicon-user'></span> Users")#</li>
+               <li>#linkTo(controller="users",  text="<span class='glyphicon glyphicon-user'></span> Users", encode=false)#</li>
              </cfif>
 
             <cfif application.rbs.setting.allowLocations AND checkpermission("accessLocations")>
-              <li>#linkTo(controller="locations",  text="<span class='glyphicon glyphicon-plus-sign'></span> Locations")#</li>
+              <li>#linkTo(controller="locations",  text="<span class='glyphicon glyphicon-plus-sign'></span> Locations", encode=false)#</li>
             </cfif>
              <cfif application.rbs.setting.allowResources AND checkpermission("accessResources")>
-              <li>#linkTo(controller="resources",  text="<span class='glyphicon glyphicon-plus-sign'></span> Resources")#</li>
+              <li>#linkTo(controller="resources",  text="<span class='glyphicon glyphicon-plus-sign'></span> Resources", encode=false)#</li>
             </cfif>
 
             <cfif application.rbs.setting.allowSettings>
             <cfif checkpermission("accessSettings")>
-               <li>#linkTo(controller="settings",  text="<span class='glyphicon glyphicon-cog'></span> Configuration")#</li>
+               <li>#linkTo(controller="settings",  text="<span class='glyphicon glyphicon-cog'></span> Configuration", encode=false)#</li>
             </cfif>
               <cfif checkpermission("accessPermissions")>
-               <li>#linkTo(controller="permissions",  text="<span class='glyphicon glyphicon-cog'></span> Permissions")#</li>
+               <li>#linkTo(controller="permissions",  text="<span class='glyphicon glyphicon-cog'></span> Permissions", encode=false)#</li>
               </cfif>
               <cfif checkPermission("accessCustomFields")>
-                <li>#linkTo(controller="Customfields", text="<span class='glyphicon glyphicon-cog'></span> Custom Fields")#</li>
+                <li>#linkTo(controller="Customfields", text="<span class='glyphicon glyphicon-cog'></span> Custom Fields", encode=false)#</li>
               </cfif>
               <cfif checkPermission("accessLogfiles")>
-                <li>#linkTo(controller="logfiles", text="<span class='glyphicon glyphicon-list'></span> Logs")#</li>
+                <li>#linkTo(controller="logfiles", text="<span class='glyphicon glyphicon-list'></span> Logs", encode=false)#</li>
               </cfif>
             </cfif>
             </ul>
@@ -78,9 +78,9 @@
           </cfif>
           <li>
             <cfif isLoggedIn()>
-              #linkTo(route="logout", text="<span class='glyphicon glyphicon-off'></span> Logout")#
+              #linkTo(route="logout", text="<span class='glyphicon glyphicon-off'></span> Logout", encode=false)#
             <cfelse>
-              #linkTo(route="login", class="hidden-lg", text="<span class='glyphicon glyphicon-lock'></span> Login")#
+              #linkTo(route="login", class="hidden-lg", text="<span class='glyphicon glyphicon-lock'></span> Login", encode=false)#
               <li class="dropdown visible-lg">
             <a class="dropdown-toggle" href="##" data-toggle="dropdown"><span class='glyphicon glyphicon-lock'></span>  Login<strong class="caret"></strong></a>
             <div id="dropdown-signin" class="dropdown-menu">

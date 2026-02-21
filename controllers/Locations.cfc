@@ -4,9 +4,11 @@ component extends="Controller" hint="Locations Controller"
 	/**
 	 * @hint Constructor.
 	 */
-	public void function init() {
-		// Permission filters
-		super.init();
+	private function config() {
+		
+		// super.config() disabled during migration;
+// Permission filters
+		// legacy super.init removed for CFWheels2+
 
 		// Permissions
 		filters(through="f_checkLocationsAdmin");

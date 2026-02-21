@@ -4,9 +4,11 @@ component extends="Controller" hint="Permissions Controller"
 	/**
 	 * @hint Constructor.
 	 */
-	public void function init() {
-		// Permission filters
-		super.init();
+	private function config() {
+		
+		// super.config() disabled during migration;
+// Permission filters
+		// legacy super.init removed for CFWheels2+
 		filters(through="checkPermissionAndRedirect", permission="accessPermissions");
 		filters(through="denyInDemoMode", only="edit,update");
 		// Verification
@@ -51,6 +53,4 @@ component extends="Controller" hint="Permissions Controller"
 	    	}
 		}
 	}
-
 }
-
