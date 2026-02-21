@@ -12,8 +12,8 @@ component extends="Model" hint="User Model"
 			regEx="^.*(?=.{6,})(?=.*\d)(?=.*[a-z]).*$",
 			message="Your password must be at least 6 characters long and contain a mixture of numbers and letters.");
 		validatesPresenceOf("firstname,lastname,email");
-		validatesConfirmationOf(properties="password", message="Your passwords must match!");
-		validatesPresenceOf(properties="password", message="You must enter a password");
+		validatesPresenceOf(property="password", when="onCreate", message="You must enter a password");
+		validate(method="validatePasswordMatch");
 		validatesUniquenessOf("email");
 	}
 
@@ -36,13 +36,32 @@ component extends="Model" hint="User Model"
 	*/
 	public void function securePassword() {
 	  	var	p={};
-		if (StructKeyExists(this, "password") AND StructKeyExists(this, "passwordConfirmation")) {
+		// Only hash if password change is intentional
+		if (this.isPasswordChanging()) {
 	     	p.salt.uuid=createUUID();
 	     	p.salt.encrypted=encrypt(p.salt.uuid, getAuthKey(), 'CFMX_COMPAT');
 	     	p.pw.hashed=hash(this.password & p.salt.uuid, 'SHA-512');
 	     	this.salt= p.salt.encrypted;
 	     	this.password=p.pw.hashed;
 	     }
+	}
+
+	public boolean function isPasswordChanging() {
+		var hasConfirm = structKeyExists(this, "passwordConfirmation");
+		var confirmLen = hasConfirm ? len(trim(this.passwordConfirmation)) : 0;
+		return (hasConfirm AND confirmLen GT 0);
+	}
+
+	/**
+	*  @hint Custom validation for password matching
+	*/
+	public void function validatePasswordMatch() {
+		// Only run validation if we are intending to change the password
+		if (isPasswordChanging()) {
+			if (password NEQ passwordConfirmation) {
+				addError(property="passwordConfirmation", message="Your passwords must match!");
+			}
+		}
 	}
 
 	/**

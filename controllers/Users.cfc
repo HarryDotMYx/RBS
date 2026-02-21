@@ -43,8 +43,13 @@ component extends="Controller" hint="Main User Controller"
 			structDelete(params, "passwordConfirmation");
 		}
 		if(structKeyExists(params, "user")){
+			structDelete(params.user, "password");
+			structDelete(params.user, "passwordConfirmation");
+			structDelete(params.user, "salt");
 			structDelete(params.user, "role");
 			user.update(params.user);
+			// Extra defensive: ensure the loaded object doesn't have a confirmation property set by auto-binding or cleanup
+			structDelete(user, "passwordConfirmation");
 			if(user.save()){
 				redirectTo(route="myaccount", success="Personal account details successfully updated");
 			}
@@ -58,10 +63,10 @@ component extends="Controller" hint="Main User Controller"
 	*  @hint Seperate PW change update
 	*/
 	public void function updatepassword() {
-		if(structKeyExists(params, "password") AND structKeyExists(params, "passwordConfirmation")
-			AND (params.password EQ params.passwordConfirmation)){
+		if(structKeyExists(params, "password") AND structKeyExists(params, "passwordConfirmation")){
 			user.update(
-				password=hashPassword(params.password, decryptSalt(user.salt))
+				password=params.password,
+				passwordConfirmation=params.passwordConfirmation
 			);
 			if(user.save()){
 				redirectTo(action="myaccount", success="Password successfully updated");
@@ -71,7 +76,7 @@ component extends="Controller" hint="Main User Controller"
 			}
 		}
 		else {
-			redirectTo(action="myaccount", error="Password and Password Confirmation must match");
+			redirectTo(action="myaccount", error="Please enter both password and confirmation");
 		}
 	}
 /******************** Admin ***********************/

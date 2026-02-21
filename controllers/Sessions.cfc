@@ -14,9 +14,6 @@ component extends="Controller" hint="Sessions Controller"
 
 
 /******************** Public***********************/
-	/**
-	*  @hint Login procedure
-	*/
 	public void function new() {
 		// Render login page
 	}

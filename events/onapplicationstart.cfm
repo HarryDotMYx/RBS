@@ -3,8 +3,7 @@
 	try{
 		_loadSettings();
 	} catch(any e){
-		writeLog(file="rbs-startup", type="error", text="_loadSettings failed: " & serializeJSON(e));
-		throw message="Could not load settings - please check your datasource";
+		writeDump(var=e, format="text"); abort;
 	}
 
 	/**
