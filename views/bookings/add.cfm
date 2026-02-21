@@ -4,7 +4,7 @@
 #panel(title="Create New Event")#
 #errorMessagesFor("event")#
 	#startFormTag(action="create", id="bookingform")#
-		#renderPartial("form")#
+		#includePartial("form")#
 
 		<!--- If approval process is on, and user is allowed to bypass approval --->
 		<cfif application.rbs.setting.approveBooking AND checkPermission("bypassApproveBooking")>

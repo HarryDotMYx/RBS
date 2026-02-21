@@ -2,7 +2,7 @@
 <!--- Room Booking Confirmation--->
 <cfparam name="event">
 <cfoutput>
-#renderPartial("/common/email/header")#
+#includePartial("/common/email/header")#
 <p style="Margin-top: 0;color: ##565656;font-family: sans-serif;font-size: 16px;line-height: 25px;Margin-bottom: 24px">Dear #event.contactName#,</p>
 <p style="Margin-top: 0;color: ##565656;font-family: sans-serif;font-size: 16px;line-height: 25px;Margin-bottom: 24px">
 <cfswitch expression="#event.status#">
@@ -37,5 +37,5 @@
 		<p style="Margin-top: 0;color: ##565656;font-family: sans-serif;font-size: 16px;line-height: 25px;Margin-bottom: 24px">None provided</p>
 </cfif>
 
-#renderPartial("/common/email/footer")#
+#includePartial("/common/email/footer")#
 </cfoutput>

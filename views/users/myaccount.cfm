@@ -4,7 +4,7 @@
 <div class="row">
 	<div class="col-md-9">
 	#startFormTag(route="updateaccount")#
-		#renderPartial("formparts/main")#
+		#includePartial("formparts/main")#
 		#submitTag(value="Update My Details")#
 	#endFormTag()#
 	</div>

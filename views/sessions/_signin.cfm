@@ -17,12 +17,12 @@ admin@domain.com</pre>
 		<cfelse>
 			#textFieldTag(name="email", value=params.email, label="E-mail",   required="true", type="email")#
 		</Cfif>
-		#passwordFieldTag(name="password", label="Password",  required="true", append="", class="form-control append")#
+		#passwordFieldTag(name="password", label="Password", required="true", class="form-control append")#
 		<cfif !savedemail>
 			#checkBoxTag(name="rememberme", label="Remember my email",  checked=savedemail)#
 		</cfif>
 			#submitTag(value="Sign in",  class="btn btn-primary btn-block append")#
 			#linkTo(text="Forgot your password?",  controller="passwordResets", action="new")#
 		#endFormTag()#
- 		</div></div>
+
 </cfoutput>

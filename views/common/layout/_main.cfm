@@ -4,6 +4,7 @@
 <![endif]-->
 <section id="main" class="container">
   #flashMessages()#
+  <cfdump var="#flash()#">
   #includeContent()#
 </section>
 <!-----------------------------Footer---------------------------->

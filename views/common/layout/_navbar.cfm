@@ -84,7 +84,7 @@
               <li class="dropdown visible-lg">
                 <a class="dropdown-toggle" href="##" data-toggle="dropdown"><span class='glyphicon glyphicon-lock'></span> Login<strong class="caret"></strong></a>
                 <div id="dropdown-signin" class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
-                   #renderPartial("/sessions/signin")#
+                   #includePartial("/sessions/signin")#
                 </div>
               </li>
             </cfif>
