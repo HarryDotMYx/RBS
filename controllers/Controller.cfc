@@ -105,21 +105,21 @@ component extends="Wheels" hint="Global Controller"
  	*  @hint Return all room locations
  	*/
  	public void function _getLocations() {
- 		locations=model("location").findAll(order="building,name");
+ 		variables.locations=model("location").findAll(order="building,name");
  	}
 
  	/**
  	*  @hint Return all settings
  	*/
  	public void function _getSettings() {
- 		settings=model("setting").findAll(order="category,id");
+ 		variables.settings=model("setting").findAll(order="category,id");
  	}
 
  	/**
  	*  @hint Return All Resources
  	*/
  	public void function _getResources() {
- 		resources=model("resource").findAll(order="type,name");
+ 		variables.resources=model("resource").findAll(order="type,name");
  	}
 
  	/**
@@ -248,8 +248,5 @@ component extends="Wheels" hint="Global Controller"
 		return {};
 	}
 
-	public void function flashInsert() {
-		// no-op for legacy FlashWrapper plugin docs page compatibility
-		return;
-	}
+
 }

@@ -11,6 +11,8 @@ component extends="Controller" hint="Sessions Controller"
 		filters(through="redirectIfLoggedIn", only="new,attemptlogin");
 	}
 
+
+
 /******************** Public***********************/
 	/**
 	*  @hint Login procedure

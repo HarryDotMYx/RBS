@@ -4,7 +4,7 @@ component extends="Controller" hint="Locations Controller"
 	/**
 	 * @hint Constructor.
 	 */
-	private function config() {
+	public void function config() {
 		
 		// super.config() disabled during migration;
 // Permission filters
@@ -16,7 +16,7 @@ component extends="Controller" hint="Locations Controller"
 		filters(through="checkPermissionAndRedirect", permission="accessCalendar", except="list,view");
 		filters(through="_setModelType");
 		// Data
-		filters(through="_getLocations", only="index,list");
+		filters(through="_getLocations");
 
 		// Verification
 		verifies(only="view,edit,update,delete", params="key", paramsTypes="integer", route="home", error="Sorry, that event can't be found");
