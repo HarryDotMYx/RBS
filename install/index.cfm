@@ -119,7 +119,7 @@
 	 		<div class="alert alert-success">
 	 			<h2>Installation Complete!</h2>
 	 			<p><strong>All checks passed and the database schema has been successfully configured.</strong></p>
-                <p><br/><a href="/?reload=true" class="btn btn-success btn-lg">Click here to start using Room Booking System</a><br/><br/></p>
+                <p><br/><a href="/?reload=true&password=roombooking" class="btn btn-success btn-lg">Click here to start using Room Booking System</a><br/><br/></p>
 	 			<p>Other recommended changes once you login:</p>
 	 			<ul>
 	 				<li>Update the Main Application Settings (Email, Logo)</li>

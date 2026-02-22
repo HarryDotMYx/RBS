@@ -41,17 +41,29 @@
 	<cfargument name="dsn" default="roombooking">
 	<cftry>
 		<cfset var sqlContent = fileRead(expandPath("new-installation.sql"))>
+		
+		<!--- Safely strip out -- comments by processing line by line --->
+		<cfset var cleanSql = []>
+		<cfloop list="#sqlContent#" index="line" delimiters="#chr(10)##chr(13)#">
+			<cfset var tLine = trim(line)>
+			<cfif left(tLine, 2) NEQ "--">
+				<cfset arrayAppend(cleanSql, line)>
+			</cfif>
+		</cfloop>
+		<cfset sqlContent = arrayToList(cleanSql, chr(10))>
+		
 		<cfset var queries = listToArray(sqlContent, ";")>
 		<cfloop array="#queries#" index="q">
 			<cfset q = trim(q)>
-			<cfif len(q) GT 0 AND left(q, 2) NEQ "--" AND left(q, 2) NEQ "/*">
+			<!--- Also ignore block comments if it's the very first token --->
+			<cfif len(q) GT 0 AND left(q, 2) NEQ "/*">
 				<cfquery datasource="#arguments.dsn#">
 					#preserveSingleQuotes(q)#
 				</cfquery>
 			</cfif>
 		</cfloop>
 		<cfcatch type="any">
-			<cfdump var="#cfcatch#" output="console">
+			<cfthrow message="#cfcatch.message# - #cfcatch.detail# - #cfcatch.sql#">
 			<cfreturn false>
 		</cfcatch>
 	</cftry>
