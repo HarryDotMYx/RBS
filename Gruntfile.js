@@ -1,18 +1,18 @@
-module.exports = function(grunt) {
+module.exports = function (grunt) {
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
 
     // Task configuration
     less: {
-        css: {
-            options: {
-              compress: false,  //minifying the result
-            },
-             files: {
-                  "stylesheets/rbs.css":"stylesheets/less/core/rbs.less"
-            }
+      css: {
+        options: {
+          compress: false,  //minifying the result
+        },
+        files: {
+          "stylesheets/rbs.css": "stylesheets/less/core/rbs.less"
         }
+      }
     },
 
     cssmin: {
@@ -21,47 +21,42 @@ module.exports = function(grunt) {
       },
       css: {
         files: {
-         "stylesheets/rbs.min.css": [ "stylesheets/rbs.css" ]
-         }
-      }
-        },
-
-    clean : {
-      css : {
-         src: ["stylesheets/rbs.css", "stylesheets/rbs.min.css"]
-      },
-      js: {
-         src: ["javascripts/rbs.js","javascripts/rbs.min.js"]
+          "stylesheets/rbs.min.css": ["stylesheets/rbs.css"]
+        }
       }
     },
 
-    concat : {
+    clean: {
+      css: {
+        src: ["stylesheets/rbs.css", "stylesheets/rbs.min.css"]
+      },
+      js: {
+        src: ["javascripts/rbs.js", "javascripts/rbs.min.js"]
+      }
+    },
+
+    concat: {
       options: {
         separator: ';',
       },
       frontend: {
         src: [
-          // Bootstrap & JQuery
+          // Bootstrap 5 & JQuery
           'bower_components/jquery/dist/jquery.js',
-          'bower_components/bootstrap/js/alert.js',
-          'bower_components/bootstrap/js/button.js',
-          'bower_components/bootstrap/js/carousel.js',
-          'bower_components/bootstrap/js/collapse.js',
-          'bower_components/bootstrap/js/dropdown.js',
-          'bower_components/bootstrap/js/modal.js',
-          'bower_components/bootstrap/js/tooltip.js',
-          'bower_components/bootstrap/js/popover.js',
-          'bower_components/bootstrap/js/tab.js',
-          'bower_components/bootstrap/js/transition.js',
-          // Calendar
-          'bower_components/moment/moment.js',
-          'bower_components/fullcalendar/dist/fullcalendar.js',
+          'node_modules/bootstrap/dist/js/bootstrap.bundle.js',
+          // Calendar & Moment
+          'node_modules/moment/moment.js',
+          'node_modules/@fullcalendar/core/index.global.js',
+          'node_modules/@fullcalendar/daygrid/index.global.js',
+          'node_modules/@fullcalendar/timegrid/index.global.js',
+          'node_modules/@fullcalendar/interaction/index.global.js',
+          // Legacy Bower Components
           'bower_components/eonasdan-bootstrap-datetimepicker/src/js/bootstrap-datetimepicker.js',
           'bower_components/bootstrapvalidator/dist/js/bootstrapValidator.js',
           'bower_components/minicolors/jquery.minicolors.js',
           'bower_components/jquery-ui/jquery-ui.js',
           'bower_components/gridmanager/src/gridmanager.js',
-          'bower_components/bootbox/bootbox.js',
+          'node_modules/bootbox/dist/bootbox.js',
           // Main.js is any custom JS
           'javascripts/main.js'
         ],
@@ -84,50 +79,50 @@ module.exports = function(grunt) {
       all: ['Gruntfile.js', 'javascripts/main.js']
     },
 
-    uglify : {
+    uglify: {
       frontend: {
         files: {
-          'javascripts/rbs.min.js' : [ 'javascripts/rbs.js' ]
+          'javascripts/rbs.min.js': ['javascripts/rbs.js']
         }
       }
     },
 
     imagemin: {
-    png: {
-      options: {
-        optimizationLevel: 7
+      png: {
+        options: {
+          optimizationLevel: 7
+        },
+        files: [
+          {
+            // Set to true to enable the following options…
+            expand: true,
+            // cwd is 'current working directory'
+            cwd: '/images/',
+            src: ['**/*.png'],
+            // Could also match cwd line above. i.e. project-directory/img/
+            dest: '/images/',
+            ext: '.png'
+          }
+        ]
       },
-      files: [
-        {
-          // Set to true to enable the following options…
-          expand: true,
-          // cwd is 'current working directory'
-          cwd: '/images/',
-          src: ['**/*.png'],
-          // Could also match cwd line above. i.e. project-directory/img/
-          dest: '/images/',
-          ext: '.png'
-        }
-      ]
+      jpg: {
+        options: {
+          progressive: true
+        },
+        files: [
+          {
+            // Set to true to enable the following options…
+            expand: true,
+            // cwd is 'current working directory'
+            cwd: '/images/',
+            src: ['**/*.jpg'],
+            // Could also match cwd. i.e. project-directory/img/
+            dest: '/images/',
+            ext: '.jpg'
+          }
+        ]
+      }
     },
-    jpg: {
-      options: {
-        progressive: true
-      },
-      files: [
-        {
-          // Set to true to enable the following options…
-          expand: true,
-          // cwd is 'current working directory'
-          cwd: '/images/',
-          src: ['**/*.jpg'],
-          // Could also match cwd. i.e. project-directory/img/
-          dest: '/images/',
-          ext: '.jpg'
-        }
-      ]
-    }
-  } ,
 
     watch: {
       js: {

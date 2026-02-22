@@ -63,7 +63,7 @@ component extends="wheels.tests.Test" {
 	}
 
 	function test_SQLInjectionProtectionWithParameterize() {
-		badparams = {username = "tonyp", password = "tonyp123' OR password!='tonyp123"};
+		badparams = {username = "testuser", password = "REDACTED' OR password!='REDACTED"};
 
 		actual = raised(
 			"model(""user"").findall(where=""username = '#badparams.username#' AND password = '#badparams.password#'"", parameterize=2)"
@@ -74,7 +74,7 @@ component extends="wheels.tests.Test" {
 	}
 
 	function test_SQLInjectionProtectionWithParameterizeAndPagination() {
-		badparams = {username = "tonyp", password = "tonyp123' OR password!='tonyp123"};
+		badparams = {username = "testuser", password = "REDACTED' OR password!='REDACTED"};
 
 		actual = raised(
 			"model(""user"").findall(where=""username = '#badparams.username#' AND password = '#badparams.password#'"", parameterize=2, perPage=2, page=1)"
