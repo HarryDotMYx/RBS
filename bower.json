@@ -1,9 +1,12 @@
 {
   "name": "Room Booking System",
-  "version": "1.2.0",
-  "homepage": "https://github.com/neokoenig/RoomBooking",
+  "version": "2.0.0",
+  "homepage": "https://github.com/HarrydotMYx/RBS",
   "authors": [
     "Tom King <tom@oxalto.co.uk>"
+  ],
+  "Update & Upgrade": [
+    "PG Mohd Azhan Fikri ([HarryDotMYx](https://github.com/HarryDotMYx))"
   ],
   "description": "Room Booking System",
   "license": "MIT",
@@ -16,15 +19,17 @@
     "test",
     "tests"
   ],
+  "dependencies": {
+    "bootstrap": "^5.3.8",
+    "bootbox": "^6.0.4",
+    "moment": "^2.30.1",
+    "fullcalendar": "^6.1.20"
+  },
   "devDependencies": {
-    "bootstrap": "~3.3.1",
-    "moment": "~2.8.3",
-    "fullcalendar": "~2.3.2",
     "eonasdan-bootstrap-datetimepicker": "~4.14.30",
     "bootstrapvalidator": "~0.5.3",
     "colorpicker": "~1.0.16",
     "minicolors": "~2.1.7",
-    "gridmanager": "git@github.com:neokoenig/jQuery-gridmanager.git#0.3.2",
-    "bootbox": "~4.3.0"
+    "gridmanager": "git@github.com:neokoenig/jQuery-gridmanager.git#0.3.2"
   }
 }
