@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   appv3:
     image: ortussolutions/commandbox:lucee5
