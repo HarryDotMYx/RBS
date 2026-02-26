@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  appv3:
+    image: ortussolutions/commandbox:lucee5
+    container_name: roombooking-a-appv3
+    restart: unless-stopped
+    environment:
+      PORT: 8080
+      BOX_SERVER_APP_CFENGINE: lucee@7.0.1.100
+      BOX_SERVER_APP_SERVERHOMEDIRECTORY: /tmp/serverHome
+      BOX_SERVER_WEB_WEBROOT: /app
+      BOX_SERVER_PROFILE: production
+      APP_DIR: /app
+      URL_REWRITES_ENABLED: "false"
+      CFCONFIGFILE: /app/.cfconfig.json
+    volumes:
+      - .:/app
+    ports:
+      - "3999:8080"
