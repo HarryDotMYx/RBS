@@ -26,34 +26,46 @@
 		request.checks[c]["result"]=false;
 		c++;
 
-		// Auth Key
-		if(checkAuthKey()){
-			request.checks[1]["result"]=true;
-			request.checks[1]["msg"]="Auth key file found";
-			request.checks[2]["result"]=true;
-			request.checks[2]["msg"]="Skipped as previous step was successful";
-		} else {
-			if(createAuthKey()){
-				request.checks[1]["msg"]="Auth key file not found - will attempt to create";
+		// Run Checks
+		try {
+			// Auth Key
+			if(checkAuthKey()){
+				request.checks[1]["result"]=true;
+				request.checks[1]["msg"]="Auth key file found";
 				request.checks[2]["result"]=true;
-				request.checks[2]["msg"]="New Auth Key Created";
-			}
-		}
-
-		// DSN
-		if(testDSN(request.dsn)){
-			request.checks[3]["result"]=true;
-			request.checks[3]["msg"]="Database schema successfully verified/created.";
-			if(checkPrimaryAdmin(request.dsn)){
-				request.checks[4]["result"]=true;
-				request.checks[4]["msg"]="At least one user in admin role found.";
-
+				request.checks[2]["msg"]="Skipped as previous step was successful";
 			} else {
-				request.showadminform=true;
-				request.checks[4]["msg"]="No user with role admin found: please create one using the form below";
+				if(createAuthKey()){
+					request.checks[1]["msg"]="Auth key file not found - will attempt to create";
+					request.checks[2]["result"]=true;
+					request.checks[2]["msg"]="New Auth Key Created";
+				}
 			}
-		} else {
-			request.checks[3]["msg"]="Database schema creation failed: please check #request.dsn# exists.";
+
+			// DSN
+			if(testDSN(request.dsn)){
+				request.checks[3]["result"]=true;
+				request.checks[3]["msg"]="Database schema successfully verified/created.";
+				if(checkPrimaryAdmin(request.dsn)){
+					request.checks[4]["result"]=true;
+					request.checks[4]["msg"]="At least one user in admin role found.";
+
+				} else {
+					request.showadminform=true;
+					request.checks[4]["msg"]="No user with role admin found: please create one using the form below";
+				}
+			} else {
+				request.checks[3]["msg"]="Database schema creation failed: please check #request.dsn# exists.";
+			}
+		} catch (any e) {
+			// Catch any errors and display them in the most relevant check
+			if (not request.checks[1].result) {
+				request.checks[1].msg = "Error: #e.message# #e.detail#";
+			} else if (not request.checks[3].result) {
+				request.checks[3].msg = "Database Error: #e.message# #e.detail#";
+			} else {
+				request.checks[4].msg = "Unexpected Error: #e.message# #e.detail#";
+			}
 		}
 
 	</cfscript>

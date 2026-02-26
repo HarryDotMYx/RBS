@@ -63,7 +63,8 @@
 			</cfif>
 		</cfloop>
 		<cfcatch type="any">
-			<cfthrow message="#cfcatch.message# - #cfcatch.detail# - #cfcatch.sql#">
+			<cfset local.sql = StructKeyExists(cfcatch, "sql") ? cfcatch.sql : "">
+			<cfthrow message="#cfcatch.message# - #cfcatch.detail# - #local.sql#">
 			<cfreturn false>
 		</cfcatch>
 	</cftry>
