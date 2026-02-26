@@ -26,13 +26,6 @@ yarn-error.log
 # Bower
 bower_components/
 
-# ColdFusion / CFWheels
-WEB-INF/
-/cfclasses/
-plugins/**/*
-!plugins/
-config/auth.cfm
-db/sql/
 
 # Build & Temp files
 *.tmp
