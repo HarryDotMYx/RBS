@@ -1,19 +1,9 @@
 
 
-# IDE / Editors
-.vscode/
-.idea/
-*.iml
-.project
-.classpath
-.settings/
-.buildpath
-
 # Node
 node_modules/
 npm-debug.log
 yarn-error.log
-
 
 
 
