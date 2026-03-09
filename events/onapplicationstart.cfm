@@ -179,7 +179,8 @@
 
 	public string function _generateSecurePassword(numeric length = 24) {
 		var secureRandom = "";
-		var charset = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%*+=_-";
+		// Escape literal '#' in CFML strings to avoid parser errors.
+		var charset = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@##$%*+=_-";
 		var password = "";
 		try {
 			secureRandom = createObject("java", "java.security.SecureRandom").getInstanceStrong();
