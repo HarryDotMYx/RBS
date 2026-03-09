@@ -265,6 +265,19 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	*/
 	public void function create() {
 		if(structkeyexists(params, "event")){
+			if(
+				structKeyExists(params.event, "start")
+				AND len(trim(params.event.start))
+				AND isDate(params.event.start)
+			){
+				var submittedStart = parseDateTime(params.event.start);
+				var submittedStartDate = createDate(year(submittedStart), month(submittedStart), day(submittedStart));
+				var todayDate = createDate(year(now()), month(now()), day(now()));
+				if(dateCompare(submittedStartDate, todayDate) EQ -1){
+					redirectTo(action="add", error="Start date cannot be in the past.");
+					return;
+				}
+			}
 			event = model("event").new(params.event);
 			if ( event.save() ) {
 				if(structKeyExists(params, "customfields") AND isStruct(params.customfields)){

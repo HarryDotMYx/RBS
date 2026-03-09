@@ -73,6 +73,33 @@
 	restrictResources(false);
 	// Override default Layouts if appropriate
 	checkLayouts();
+	// For create flow, prevent selecting dates before today
+	<cfif params.action EQ "add" OR params.action EQ "create">
+		(function lockPastStartDate(){
+			var todayStart = moment().startOf("day"),
+				startPicker = $("#event-start").data("DateTimePicker"),
+				endPicker = $("#event-end").data("DateTimePicker"),
+				startDate = null,
+				endDate = null;
+			if(startPicker){
+				startPicker.minDate(todayStart);
+				startDate = startPicker.date();
+				if(!startDate || startDate.isBefore(todayStart, "day")){
+					startDate = todayStart.clone().add(1, "hour");
+					startPicker.date(startDate);
+				}
+			}
+			if(endPicker){
+				endDate = endPicker.date();
+				if(startDate){
+					endPicker.minDate(startDate);
+					if(!endDate || endDate.isBefore(startDate)){
+						endPicker.date(startDate.clone().add(1, "hour"));
+					}
+				}
+			}
+		})();
+	</cfif>
 
 	$("#event-start").on("dp.hide", function(e){
 		concurrencyCheck();
