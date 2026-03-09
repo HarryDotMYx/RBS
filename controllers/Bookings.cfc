@@ -445,14 +445,20 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 		var sd="";
 	 		var td="";
 			var wc=[];
+			var parsedFrom = "";
+			var parsedTo = "";
 			// Date Filter
 			if(structKeyExists(params, "datefrom")
 				AND structKeyExists(params, "dateto")
-				){
-					sd=createDateTime(year(params.datefrom), month(params.datefrom), day(params.datefrom), 00,00,00);
-					td=createDateTime(year(params.dateto), month(params.dateto), day(params.dateto), 23,59,59);
-					arrayAppend(wc, "start > '#sd#'");
-					arrayAppend(wc, "start < '#td#'");
+			){
+				parsedFrom = _parseAgendaDateInput(params.datefrom);
+				parsedTo = _parseAgendaDateInput(params.dateto);
+				if (isDate(parsedFrom) AND isDate(parsedTo)) {
+					sd=createDateTime(year(parsedFrom), month(parsedFrom), day(parsedFrom), 00,00,00);
+					td=createDateTime(year(parsedTo), month(parsedTo), day(parsedTo), 23,59,59);
+					arrayAppend(wc, "start >= '#sd#'");
+					arrayAppend(wc, "start <= '#td#'");
+				}
 			}
 			// Status Filter
 			if(structKeyExists(params, "status") AND len(params.status)){
@@ -467,7 +473,7 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 			// Keyword filter
 			if(structKeyExists(params, "q") AND len(params.q)){
 				params.q=striptags(params.q);
-				arrayAppend(wc, "title LIKE '%#params.q#%' OR description LIKE '%#params.q#%'");
+				arrayAppend(wc, "(title LIKE '%#params.q#%' OR description LIKE '%#params.q#%')");
 
 			}
 
@@ -477,6 +483,46 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 				return "";
 			}
 
+	}
+
+	/**
+	*  @hint Parse agenda list date input safely. Supports DD/MM/YYYY and MM/DD/YYYY, defaults to DD/MM/YYYY when ambiguous.
+	*/
+	private any function _parseAgendaDateInput(required any value) {
+		var raw = trim(arguments.value & "");
+		var normalized = replace(raw, "-", "/", "all");
+		var parts = [];
+		var p1 = 0;
+		var p2 = 0;
+		var p3 = 0;
+
+		if (!len(raw)) {
+			return "";
+		}
+
+		// Handle manually entered day/month/year strings first so we can avoid locale ambiguity.
+		if (reFind("^\d{1,2}/\d{1,2}/\d{4}$", normalized)) {
+			parts = listToArray(normalized, "/");
+			p1 = val(parts[1]);
+			p2 = val(parts[2]);
+			p3 = val(parts[3]);
+
+			// If one side is > 12 we can infer format, otherwise default to DD/MM/YYYY.
+			if (p1 > 12 AND p2 <= 12) {
+				return createDateTime(p3, p2, p1, 0, 0, 0);
+			}
+			if (p2 > 12 AND p1 <= 12) {
+				return createDateTime(p3, p1, p2, 0, 0, 0);
+			}
+			return createDateTime(p3, p2, p1, 0, 0, 0);
+		}
+
+		// Fallback for native date objects / unambiguous engine parsing.
+		if (isDate(raw)) {
+			return parseDateTime(raw);
+		}
+
+		return "";
 	}
 
 
