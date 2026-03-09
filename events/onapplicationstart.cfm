@@ -27,8 +27,49 @@
 
         // Check if the system has been installed
         if (!fileExists(expandPath("config/install.lock"))) {
-            application.rbs.isInstalled = false;
-            return;
+            // Check for Docker Auto Installation
+            var sysEnv = createObject("java", "java.lang.System").getenv();
+            var autoInstall = structKeyExists(sysEnv, "AUTO_INSTALL") ? sysEnv["AUTO_INSTALL"] : "false";
+
+            if (autoInstall EQ "true") {
+                try {
+                    // Force zero-touch auto installation
+                    include "/install/functions.cfm";
+                    var dsn = "roombooking";
+
+                    // 1. Create auth key if needed
+                    if (!checkAuthKey()) {
+                        createAuthKey();
+                    }
+
+                    // 2. Initialize database schema
+                    runSqlFile(dsn);
+
+                    // 3. Create initial admin user
+                    if (!checkPrimaryAdmin(dsn)) {
+                        // Populate form scope to reuse the existing function
+                        form.email = structKeyExists(sysEnv, "ADMIN_EMAIL") ? sysEnv["ADMIN_EMAIL"] : "admin@domain.com";
+                        form.firstname = "System";
+                        form.lastname = "Administrator";
+                        form.password = structKeyExists(sysEnv, "ADMIN_PASSWORD") ? sysEnv["ADMIN_PASSWORD"] : "roombooking123";
+                        form.password2 = form.password;
+
+                        createInitialAdminUser(dsn);
+                    }
+
+                    // 4. Mark as installed
+                    fileWrite(expandPath("config/install.lock"), "installed");
+                    application.rbs.isInstalled = true;
+                } catch(any e) {
+                    // Log error and fall back to manual installation if auto-install fails
+                    writeLog(type="error", text="Auto-install failed: #e.message# #e.detail#");
+                    application.rbs.isInstalled = false;
+                    return;
+                }
+            } else {
+                application.rbs.isInstalled = false;
+                return;
+            }
         } else {
             application.rbs.isInstalled = true;
         }

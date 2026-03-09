@@ -40,7 +40,7 @@
 <cffunction returntype="boolean" name="runSqlFile" hint="Run SQL file to build schema automatically">
 	<cfargument name="dsn" default="roombooking">
 	<cftry>
-		<cfset var sqlContent = fileRead(expandPath("new-installation.sql"))>
+		<cfset var sqlContent = fileRead(expandPath("/install/new-installation.sql"))>
 		
 		<!--- Safely strip out -- comments by processing line by line --->
 		<cfset var cleanSql = []>
