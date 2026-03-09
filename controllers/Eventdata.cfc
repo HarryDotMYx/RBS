@@ -22,7 +22,7 @@ component extends="Controller" hint="Misc Event Data"
 
 		// Formats
 		provides("html,json");
-		usesLayout(template="modal", only="getevent");
+		usesLayout(template=false, only="getevent");
 		filters(through="_setModelType");
 	}
 
@@ -72,21 +72,12 @@ component extends="Controller" hint="Misc Event Data"
 	*  @hint get single event via ajax, i.e for modals
 	*/
 	public void function getevent() {
-		var e = model("event").findOne(where="id = #params.key#", include="location");
-		if (!isObject(e)) {
-			renderText('<p>Event not found.</p>');
+		event=model("location").findAll(where="events.id = #params.key#", include="events(eventresources)");
+		if (!isQuery(event) OR !event.recordcount) {
+			renderText('<div class="alert alert-warning"><strong>Event not found.</strong></div>');
 			return;
 		}
-		var html = '';
-		html &= '<p><strong>From:</strong> ' & dateFormat(e.start,'dd mmm yyyy') & ' ' & timeFormat(e.start,'HH:mm') & '</p>';
-		html &= '<p><strong>To:</strong> ' & dateFormat(e.end,'dd mmm yyyy') & ' ' & timeFormat(e.end,'HH:mm') & '</p>';
-		html &= '<p><strong>Location:</strong> ' & encodeForHTML(e.location().name) & '</p>';
-		html &= '<p><strong>Status:</strong> ' & encodeForHTML(e.status) & '</p>';
-		if (len(trim(e.description))) {
-			html &= '<hr><div class="well">' & encodeForHTML(e.description) & '</div>';
-		}
-		html &= '<hr><button type="button" class="btn btn-default" data-dismiss="modal">Close</button>';
-		renderText(html);
+		renderView(action="getevent", layout=false);
 	}
 /******************** Private *********************/
  	/**
