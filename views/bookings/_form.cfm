@@ -84,6 +84,26 @@
 			endPicker.format("DD MMM YYYY HH:mm");
 		}
 	})();
+	// If date comes from calendar click (?d=YYYY-MM-DD), force-correct the parsed year/date in picker
+	<cfif (params.action EQ "add" OR params.action EQ "create") AND structKeyExists(params, "d") AND len(trim(params.d))>
+		(function normalizeStartFromCalendarDate(){
+			var startPicker = $("#event-start").data("DateTimePicker"),
+				selectedDay = moment("<cfoutput>#encodeForJavaScript(params.d)#</cfoutput>", "YYYY-MM-DD", true),
+				existing = null,
+				hourVal = 9,
+				minVal = 0;
+			if(!startPicker || !selectedDay.isValid()){
+				return;
+			}
+			existing = startPicker.date();
+			if(existing && existing.isValid()){
+				hourVal = existing.hour();
+				minVal = existing.minute();
+			}
+			selectedDay.hour(hourVal).minute(minVal).second(0).millisecond(0);
+			startPicker.date(selectedDay);
+		})();
+	</cfif>
 	// For create flow, prevent selecting dates before today
 	<cfif params.action EQ "add" OR params.action EQ "create">
 		(function lockPastStartDate(){
