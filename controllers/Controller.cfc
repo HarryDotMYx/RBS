@@ -328,6 +328,7 @@ component extends="Wheels" hint="Global Controller"
 			firstname = user.firstname,
 			lastname = user.lastname,
 			email = user.email,
+			tel = structKeyExists(user, "tel") ? user.tel : "",
 			role = user.role,
 			apitoken = user.apitoken
 		};

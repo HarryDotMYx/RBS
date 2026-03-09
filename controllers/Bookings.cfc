@@ -168,23 +168,35 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	/**
 	*  @hint Add a new booking
 	*/
-	public void function add() {
+	 public void function add() {
 		locations=model("location").findAll(order="building,name");
 		resources=model("resource").findAll(order="type,name");
 		 nEventResources=model("eventresource").new();
-    	 event=model("event").new(eventresources=nEventResources);
-    	 customfields=getCustomFields(objectname="event", key=event.key());
-    	 // Prefill contact details from logged-in user
-    	 if (isLoggedIn()) {
-    	 	var cu = currentUser();
-    	 	if (structKeyExists(cu, "firstname") || structKeyExists(cu, "lastname")) {
-    	 		event.contactname = trim((structKeyExists(cu, "firstname") ? cu.firstname : "") & " " & (structKeyExists(cu, "lastname") ? cu.lastname : ""));
-    	 	}
-    	 	if (structKeyExists(cu, "email")) {
-    	 		event.contactemail = cu.email;
-    	 	}
-    	 	event.emailcontact = 1;
-    	 }
+	    	 event=model("event").new(eventresources=nEventResources);
+	    	 customfields=getCustomFields(objectname="event", key=event.key());
+	    	 // Prefill contact details from logged-in user
+	    	 if (isLoggedIn()) {
+	    	 	var cu = currentUser();
+	    	 	var userTel = "";
+	    	 	if (structKeyExists(cu, "firstname") || structKeyExists(cu, "lastname")) {
+	    	 		event.contactname = trim((structKeyExists(cu, "firstname") ? cu.firstname : "") & " " & (structKeyExists(cu, "lastname") ? cu.lastname : ""));
+	    	 	}
+	    	 	if (structKeyExists(cu, "email")) {
+	    	 		event.contactemail = cu.email;
+	    	 	}
+	    	 	if (structKeyExists(cu, "tel") && len(trim(cu.tel & ""))) {
+	    	 		userTel = trim(cu.tel & "");
+	    	 	} else if (structKeyExists(cu, "id") && isNumeric(cu.id)) {
+	    	 		var fullUser = model("user").findOne(where="id = #val(cu.id)#");
+	    	 		if (isObject(fullUser) && structKeyExists(fullUser, "tel") && len(trim(fullUser.tel & ""))) {
+	    	 			userTel = trim(fullUser.tel & "");
+	    	 		}
+	    	 	}
+	    	 	if (len(userTel)) {
+	    	 		event.contactno = userTel;
+	    	 	}
+	    	 	event.emailcontact = 1;
+	    	 }
     	 // Listen out for event date & location passed in URL via JS
     	 if(structKeyExists(params, "d")){
     	 	qDate=createDateTime(listFirst(params.d, '-'),ListGetAt(params.d, 2, '-'),ListGetAt(params.d, 3, '-'),hour(now()),00,00);
