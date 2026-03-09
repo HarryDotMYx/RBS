@@ -21,7 +21,7 @@
       "allowedCreate": true,
       "allowedAlter": true,
       "allowedDrop": true,
-      "custom": "useUnicode=true&characterEncoding=UTF-8"
+      "custom": "useUnicode=true&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true"
     },
     "app": {
       "dbdriver": "MySQL",
@@ -44,7 +44,7 @@
       "allowedCreate": true,
       "allowedAlter": true,
       "allowedDrop": true,
-      "custom": "useUnicode=true&characterEncoding=UTF-8"
+      "custom": "useUnicode=true&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true"
     }
   }
 }

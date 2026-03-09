@@ -93,7 +93,8 @@
       </div>
     </div>
 </cfif>
-<cfif fileExists(expandPath("/install/index.cfm"))>
+<cfset sysEnv = createObject("java", "java.lang.System").getenv()>
+<cfif fileExists(expandPath("/install/index.cfm")) AND NOT (structKeyExists(sysEnv, "AUTO_INSTALL") AND sysEnv["AUTO_INSTALL"] EQ "true")>
     <div class="container">
         <div class="alert alert-danger" role="alert">
           <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
