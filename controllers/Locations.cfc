@@ -35,6 +35,10 @@ component extends="Controller" hint="Locations Controller"
 	*/
 	public void function view() {
 		location=model("location").findOne(where="id = #params.key#");
+		if (!isObject(location)) {
+			redirectTo(action="index", error="Sorry, that location can't be found");
+			return;
+		}
 		customfields=getCustomFields(objectname=request.modeltype, key=location.key());
 	}
 /******************** Admin ***********************/
