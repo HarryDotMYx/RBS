@@ -16,7 +16,7 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 		filters(through="checkPermissionAndRedirect", permission="allowApproveBooking", only="approve,deny");
 
 		// Verification
-		verifies(only="approve,deny,view,clone,edit,delete", params="key", paramsTypes="integer", route="home", error="Sorry, that event can't be found");
+		verifies(only="approve,deny,view,clone,edit,update,delete", params="key", paramsTypes="integer", route="home", error="Sorry, that event can't be found");
 
 		// Data
 		filters(through="_getLocations", only="index,building,location,add,edit,clone,create,update,list,day");
@@ -265,9 +265,12 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	*  @hint Event CRUD
 	*/
 	public void function edit() {
+		if(!_checkEventOwnerOrAdmin()){
+			return;
+		}
 		locations=model("location").findAll(order="building,name");
 		resources=model("resource").findAll(order="type,name");
-		event=model("event").findOne(where="id = #params.key#", include="eventresources");
+		event=model("event").findOne(where="id = #val(params.key)#", include="eventresources");
 		customfields=getCustomFields(objectname=request.modeltype, key=params.key);
 	}
 
@@ -276,6 +279,8 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	*/
 	public void function create() {
 		if(structkeyexists(params, "event")){
+			var creatorUserId = 0;
+			var hasEventUserIdColumn = _eventsTableHasUserId();
 			if(
 				structKeyExists(params.event, "start")
 				AND len(trim(params.event.start))
@@ -284,16 +289,31 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 				var submittedStart = parseDateTime(params.event.start);
 				var submittedStartDate = createDate(year(submittedStart), month(submittedStart), day(submittedStart));
 				var todayDate = createDate(year(now()), month(now()), day(now()));
-				if(dateCompare(submittedStartDate, todayDate) EQ -1){
-					redirectTo(action="add", error="Start date cannot be in the past.");
-					return;
+					if(dateCompare(submittedStartDate, todayDate) EQ -1){
+						redirectTo(action="add", error="Start date cannot be in the past.");
+						return;
+					}
 				}
-			}
-			event = model("event").new(params.event);
-			if ( event.save() ) {
-				if(structKeyExists(params, "customfields") AND isStruct(params.customfields)){
-					updateCustomFields(objectname=request.modeltype, key=event.key(), customfields=params.customfields);
+				if (isLoggedIn() && hasEventUserIdColumn) {
+					var cu = currentUser();
+					if (structKeyExists(cu, "id") && isNumeric(cu.id)) {
+						creatorUserId = val(cu.id);
+						params.event.userid = creatorUserId;
+					}
 				}
+				event = model("event").new(params.event);
+				if ( event.save() ) {
+					// Persist creator ownership explicitly (works even if ORM metadata was cached before schema change).
+					if (creatorUserId GT 0 && hasEventUserIdColumn) {
+						queryExecute(
+							"UPDATE events SET userid = ? WHERE id = ?",
+							[creatorUserId, event.key()],
+							{datasource=application.wheels.datasourcename}
+						);
+					}
+					if(structKeyExists(params, "customfields") AND isStruct(params.customfields)){
+						updateCustomFields(objectname=request.modeltype, key=event.key(), customfields=params.customfields);
+					}
 				// Update approval status if allowed to bypass
 				if(application.rbs.setting.approveBooking AND checkPermission("bypassApproveBooking")){
 					event.status="approved";
@@ -324,10 +344,17 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 						  		nevent.end = dateAdd("m", i, nevent.end);
 						  	}
 						}
-						// Save the child event: NB, repeated events can't/don't save customfield metadata
-						nevent.save();
+							// Save the child event: NB, repeated events can't/don't save customfield metadata
+							nevent.save();
+							if (creatorUserId GT 0 && hasEventUserIdColumn) {
+								queryExecute(
+									"UPDATE events SET userid = ? WHERE id = ?",
+									[creatorUserId, nevent.key()],
+									{datasource=application.wheels.datasourcename}
+								);
+							}
+						}
 					}
-				}
 				// Send Confirmation email if appropriate
 				if(structKeyExists(params.event, "emailContact") AND params.event.emailContact){
 					notifyContact(event);
@@ -369,8 +396,14 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	*  @hint Event CRUD
 	*/
 	public void function update() {
+		if(!_checkEventOwnerOrAdmin()){
+			return;
+		}
 		if(structkeyexists(params, "event")){
-			event = model("event").findOne(where="id = #params.key#", include="eventresources");
+			event = model("event").findOne(where="id = #val(params.key)#", include="eventresources");
+			if(structKeyExists(params.event, "userid")){
+				structDelete(params.event, "userid");
+			}
 			event.update(params.event);
 			if ( event.save() )  {
 				if(structKeyExists(params, "customfields") AND isStruct(params.customfields)){
@@ -388,7 +421,10 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	*  @hint Event CRUD
 	*/
 	public void function delete() {
-    	event = model("event").findOne(where="id = #params.key#", include="eventresources");
+		if(!_checkEventOwnerOrAdmin()){
+			return;
+		}
+	    	event = model("event").findOne(where="id = #val(params.key)#", include="eventresources");
 		if ( event.delete() )  {
 			redirectTo(action="index", success="event successfully deleted");
 		}
@@ -396,7 +432,93 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 			redirectTo(action="index", error="There were problems deleting that event");
 		}
 	}
-/******************** Private *********************/
+	/******************** Private *********************/
+	/**
+	*  @hint Restrict edit/update/delete to event owner or admin.
+	*/
+	private boolean function _checkEventOwnerOrAdmin() {
+		if (!isLoggedIn() || !structKeyExists(params, "key") || !isNumeric(params.key)) {
+			redirectTo(route="denied", error="Only the event owner or an administrator can edit this booking.");
+			return false;
+		}
+
+		var ownershipRow = queryExecute(
+			"SELECT userid, contactemail FROM events WHERE id = ? LIMIT 1",
+			[val(params.key)],
+			{datasource=application.wheels.datasourcename}
+		);
+
+		if (!ownershipRow.recordCount) {
+			redirectTo(route="home", error="Sorry, that event can't be found");
+			return false;
+		}
+
+		if (
+			!_currentUserCanManageEvent(
+				ownerUserId=ownershipRow.userid[1],
+				ownerContactEmail=ownershipRow.contactemail[1]
+			)
+		) {
+			redirectTo(route="denied", error="Only the event owner or an administrator can edit this booking.");
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	*  @hint Returns true when current user is admin or owns the event.
+	*/
+	private boolean function _currentUserCanManageEvent(any ownerUserId="", string ownerContactEmail="") {
+		var cu = {};
+		var ownerId = 0;
+
+		if (userIsInRole("admin")) {
+			return true;
+		}
+
+		if (!isLoggedIn()) {
+			return false;
+		}
+
+		cu = currentUser();
+		if (!structKeyExists(cu, "id") || !isNumeric(cu.id)) {
+			return false;
+		}
+
+		if (isNumeric(arguments.ownerUserId)) {
+			ownerId = val(arguments.ownerUserId);
+			if (ownerId GT 0) {
+				return (ownerId EQ val(cu.id));
+			}
+		}
+
+		// Legacy fallback for records created before userid ownership was tracked.
+		if (
+			len(trim(arguments.ownerContactEmail & ""))
+			&& structKeyExists(cu, "email")
+		) {
+			return lCase(trim(arguments.ownerContactEmail & "")) EQ lCase(trim(cu.email & ""));
+		}
+
+		return false;
+	}
+
+	/**
+	*  @hint Detect whether events.userid exists.
+	*/
+	private boolean function _eventsTableHasUserId() {
+		try {
+			queryExecute(
+				"SELECT userid FROM events LIMIT 1",
+				[],
+				{datasource=application.wheels.datasourcename}
+			);
+			return true;
+		} catch(any e) {
+			return false;
+		}
+	}
+
 	/**
 	*  @hint Conditional Where Clause for Day Listing: deprecated in 1.2
 	*/

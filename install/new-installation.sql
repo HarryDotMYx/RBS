@@ -85,6 +85,7 @@ CREATE TABLE `events` (
   `updatedat` datetime DEFAULT NULL,
   `deletedat` datetime DEFAULT NULL,
   `status` varchar(50) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'pending',
+  `userid` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 

@@ -24,7 +24,8 @@ component extends="Controller" hint="Sessions Controller"
 
 	public void function attemptlogin() {
 		var p={};
-		if(structkeyexists(params, "email") AND structkeyexists(params, "password")){
+		var user = "";
+		if(structKeyExists(params, "email") AND structKeyExists(params, "password")){
 			user = model("user").findOneByEmail(params.email);
 
 			if(isObject(user)){
@@ -36,25 +37,22 @@ component extends="Controller" hint="Sessions Controller"
 				}
 				p.password.hashed = hash(params.password & p.salt.decrypted, 'SHA-512');
 				if(p.password.hashed EQ user.password){
-					if(structkeyexists(params, "rememberme")){
+					if(structKeyExists(params, "rememberme")){
 						setCookieRememberUsername(params.email);
 					}
 					addlogline(type="Login", message="#user.email# successfully logged in", userid=user.id);
 					_createUserInScope(user);
 					return;
 				}
-				addLogline(type="Login", message="PW doesn't match hashed");
-				RedirectTo(error="We could not sign you in. Please try that again.", route="login");
+				_denyLogin("Login failed: password verification mismatch for #h(params.email)#.");
 				return;
 			}
 
-			addLogline(type="Login", message="Bad Login [User isn't object, searched for #h(params.email)#]");
-			RedirectTo(error="We could not sign you in. Please try that again.", route="login");
+			_denyLogin("Login failed: account not found for #h(params.email)#.");
 			return;
 		}
 
-		addLogline(type="Login", message="Bad Login [Need Email and Password]");
-		RedirectTo(error="We could not sign you in. Please try that again.", route="login");
+		_denyLogin("Login failed: missing email or password.");
 	}
 
 	/**
@@ -81,5 +79,16 @@ component extends="Controller" hint="Sessions Controller"
 			location(url="/", addToken=false, statusCode=302);
 			abort;
 		}
+	}
+
+	/**
+	* @hint Log and reject an invalid login attempt with consistent user-facing message
+	*/
+	private void function _denyLogin(required string logMessage) {
+		addLogline(type="Login", message=arguments.logMessage);
+		redirectTo(
+			error="We couldn't sign you in. Please check your email and password, then try again.",
+			route="login"
+		);
 	}
 }
