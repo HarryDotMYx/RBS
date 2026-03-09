@@ -58,7 +58,7 @@ For a highly detailed, comprehensive guide on how to deploy this system using Do
 /opt/RoomBooking-A/
 ├── docker-compose-v3.yml   ← Compose file for this app
 └── app-v251/               ← App code (mounted as /app inside container)
-    ├── .cfconfig.json      ← Datasource configuration
+    ├── .cfconfig.json      ← Base Lucee config (datasource overridden at runtime)
     ├── index.cfm
     ├── controllers/
     ├── views/
@@ -72,6 +72,8 @@ For a highly detailed, comprehensive guide on how to deploy this system using Do
 **First time or after a long pause:**
 ```bash
 cd /opt/RoomBooking-A
+cp .env.example .env
+# update ADMIN_EMAIL / DB_PASSWORD / DB_ROOT_PASSWORD in .env
 docker-compose -f docker-compose-v3.yml up -d
 ```
 
@@ -84,8 +86,9 @@ docker-compose -f docker-compose-v3.yml ps
 
 Expected output:
 ```
-NAME                    STATUS    PORTS
-roombooking-a-appv3     running   0.0.0.0:3999->8080/tcp
+NAME                 STATUS
+roombooking-a-db     running (healthy)
+roombooking-a-appv3  running
 ```
 
 ---
@@ -158,12 +161,13 @@ http://<server-ip>:3999/index.cfm?reload=roombooking
 To access the database via CLI:
 
 ```bash
-docker exec -it roombooking-a-appv3 /bin/bash
-# Inside container:
-mysql -h db -u roombooking -proombooking123 roombooking
+docker exec -it roombooking-a-db mariadb \
+  -u"${DB_USER:-roombooking}" \
+  -p"${DB_PASSWORD:-roombooking123}" \
+  "${DB_NAME:-roombooking}"
 ```
 
-Or use any MySQL client from the host by connecting to the exposed port (check `docker-compose-v3.yml`).
+> DB container is internal-only by default (no host port exposure).
 
 ---
 
@@ -175,18 +179,23 @@ Or use any MySQL client from the host by connecting to the exposed port (check `
 | Port 3999 not accessible | Run `docker-compose ps` — ensure status is `running` |
 | App errors after editing code | Hit the reload URL or restart the container |
 | Database connection error | Ensure the `db` container is also running |
+| Auto-install fails with `AUTO_INSTALL requires ADMIN_EMAIL` | Set `ADMIN_EMAIL` in `.env`, then restart `appv3` |
+| Need initial admin password | Check `docker-compose logs appv3` for `RBS_AUTO_INSTALL_ADMIN ...` entry |
 | Code changes not taking effect | Lucee cache — hit the reload URL |
 
 ---
 
 ## 🗄️ Database / Datasource
 
-Configured in `.cfconfig.json`:
+Configured at runtime from environment variables in `Application.cfc`:
 
 | Datasource | Purpose |
 |---|---|
 | `roombooking` | Main application database |
 | `app` | Compatibility alias for Wheels tooling |
+
+Key env vars:
+`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_ROOT_PASSWORD`, `AUTO_INSTALL`, `ADMIN_EMAIL`
 
 ---
 

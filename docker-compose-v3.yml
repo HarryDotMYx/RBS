@@ -1,8 +1,29 @@
 services:
+  db:
+    image: mariadb:11.4
+    container_name: roombooking-a-db
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:-roombooking}
+      MARIADB_USER: ${DB_USER:-roombooking}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-roombooking123}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-change-me-root-password}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -uroot -p$${MARIADB_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
   appv3:
     image: ortussolutions/commandbox:lucee5
     container_name: roombooking-a-appv3
     restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
     environment:
       PORT: 8080
       BOX_SERVER_APP_CFENGINE: lucee@7.0.1.100
@@ -12,7 +33,18 @@ services:
       APP_DIR: /app
       URL_REWRITES_ENABLED: "false"
       CFCONFIGFILE: /app/.cfconfig.json
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_NAME: ${DB_NAME:-roombooking}
+      DB_USER: ${DB_USER:-roombooking}
+      DB_PASSWORD: ${DB_PASSWORD:-roombooking123}
+      DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-change-me-root-password}
+      AUTO_INSTALL: ${AUTO_INSTALL:-true}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
     volumes:
       - .:/app
     ports:
       - "3999:8080"
+
+volumes:
+  db_data:

@@ -25,54 +25,79 @@
 			templatetypes="form,output"
 		};
 
-        // Check if the system has been installed
-        if (!fileExists(expandPath("config/install.lock"))) {
-            // Check for Docker Auto Installation
-            var sysEnv = createObject("java", "java.lang.System").getenv();
-            var autoInstall = structKeyExists(sysEnv, "AUTO_INSTALL") ? sysEnv["AUTO_INSTALL"] : "false";
+		var dsn = "roombooking";
+		var installLockPath = expandPath("config/install.lock");
+		var sysEnv = _systemEnv();
+		var autoInstall = _isTruthy(_env(sysEnv, "AUTO_INSTALL", "false"));
+		var dbState = _databaseState(dsn);
 
-            if (autoInstall EQ "true") {
-                try {
-                    // Force zero-touch auto installation
-                    include "/install/functions.cfm";
-                    var dsn = "roombooking";
+		// Primary installation state is schema-based, not lock-file based.
+		if (dbState.schemaReady) {
+			if (!fileExists(installLockPath)) {
+				fileWrite(installLockPath, "installed");
+			}
+			application.rbs.isInstalled = true;
+		} else if (autoInstall) {
+			try {
+				include "/install/functions.cfm";
 
-                    // 1. Create auth key if needed
-                    if (!checkAuthKey()) {
-                        createAuthKey();
-                    }
+				var adminEmail = _env(sysEnv, "ADMIN_EMAIL", "");
+				if (!len(adminEmail)) {
+					throw(message = "AUTO_INSTALL requires ADMIN_EMAIL to be set");
+				}
+				if (!dbState.reachable) {
+					throw(
+						message = "Unable to connect to datasource '#dsn#' during auto-install",
+						detail = dbState.detail
+					);
+				}
 
-                    // 2. Initialize database schema
-                    runSqlFile(dsn);
+				if (!checkAuthKey()) {
+					createAuthKey();
+				}
 
-                    // 3. Create initial admin user
-                    if (!checkPrimaryAdmin(dsn)) {
-                        // Populate form scope to reuse the existing function
-                        form.email = structKeyExists(sysEnv, "ADMIN_EMAIL") ? sysEnv["ADMIN_EMAIL"] : "admin@domain.com";
-                        form.firstname = "System";
-                        form.lastname = "Administrator";
-                        form.password = structKeyExists(sysEnv, "ADMIN_PASSWORD") ? sysEnv["ADMIN_PASSWORD"] : "roombooking123";
-                        form.password2 = form.password;
+				// Only create schema when required.
+				if (!runSqlFile(dsn)) {
+					throw(message = "Schema initialization failed for datasource '#dsn#'");
+				}
 
-                        createInitialAdminUser(dsn);
-                    }
+				dbState = _databaseState(dsn);
+				if (!dbState.schemaReady) {
+					throw(message = "Core schema not detected after initialization");
+				}
 
-                    // 4. Mark as installed
-                    fileWrite(expandPath("config/install.lock"), "installed");
-                    application.rbs.isInstalled = true;
-                } catch(any e) {
-                    // Log error and fall back to manual installation if auto-install fails
-                    writeLog(type="error", text="Auto-install failed: #e.message# #e.detail#");
-                    application.rbs.isInstalled = false;
-                    return;
-                }
-            } else {
-                application.rbs.isInstalled = false;
-                return;
-            }
-        } else {
-            application.rbs.isInstalled = true;
-        }
+				if (!checkPrimaryAdmin(dsn)) {
+					var generatedPassword = _generateSecurePassword(24);
+					form.email = adminEmail;
+					form.firstname = "System";
+					form.lastname = "Administrator";
+					form.password = generatedPassword;
+					form.password2 = generatedPassword;
+
+					createInitialAdminUser(dsn);
+					writeLog(
+						type = "information",
+						text = "RBS_AUTO_INSTALL_ADMIN email=#form.email# password=#generatedPassword#"
+					);
+				}
+
+				fileWrite(installLockPath, "installed");
+				application.rbs.isInstalled = true;
+			} catch(any e) {
+				writeLog(
+					type = "error",
+					text = "RBS_AUTO_INSTALL_FAILED message=#e.message# detail=#e.detail#"
+				);
+				application.rbs.isInstalled = false;
+				return;
+			}
+		} else {
+			if (!dbState.reachable && len(dbState.detail)) {
+				writeLog(type = "error", text = "RBS_DB_UNAVAILABLE detail=#dbState.detail#");
+			}
+			application.rbs.isInstalled = false;
+			return;
+		}
 
 		for(setting in model("setting").findAll()){
 			application.rbs.setting['#setting.id#']=setting.value;
@@ -97,6 +122,77 @@
 				application.rbs.templates[template.parentmodel][template.type] = template.template;
 			}
 		}
+	}
+
+	public struct function _systemEnv() {
+		try {
+			return createObject("java", "java.lang.System").getenv();
+		} catch (any e) {
+			return {};
+		}
+	}
+
+	public string function _env(required struct source, required string key, string defaultValue = "") {
+		if (
+			structKeyExists(arguments.source, arguments.key)
+			&& len(trim(arguments.source[arguments.key] & ""))
+		) {
+			return trim(arguments.source[arguments.key] & "");
+		}
+		return arguments.defaultValue;
+	}
+
+	public boolean function _isTruthy(any value) {
+		var normalized = lCase(trim(arguments.value & ""));
+		return listFind("1,true,yes,on", normalized) > 0;
+	}
+
+	public struct function _databaseState(required string dsn) {
+		var result = {
+			reachable = false,
+			schemaReady = false,
+			detail = ""
+		};
+
+		try {
+			queryExecute("SELECT 1 AS ping", [], { datasource = arguments.dsn });
+			result.reachable = true;
+
+			var schemaCheck = queryExecute(
+				"SELECT 1 AS has_table
+				 FROM information_schema.tables
+				 WHERE table_schema = DATABASE()
+				   AND table_name = 'settings'
+				 LIMIT 1",
+				[],
+				{ datasource = arguments.dsn }
+			);
+			result.schemaReady = schemaCheck.recordCount > 0;
+		} catch(any e) {
+			var errMessage = structKeyExists(e, "message") ? e.message : "";
+			var errDetail = structKeyExists(e, "detail") ? e.detail : "";
+			result.detail = trim(errMessage & " " & errDetail);
+		}
+
+		return result;
+	}
+
+	public string function _generateSecurePassword(numeric length = 24) {
+		var secureRandom = "";
+		var charset = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%*+=_-";
+		var password = "";
+		try {
+			secureRandom = createObject("java", "java.security.SecureRandom").getInstanceStrong();
+		} catch (any e) {
+			secureRandom = createObject("java", "java.security.SecureRandom").init();
+		}
+
+		for (var i = 1; i <= arguments.length; i++) {
+			var idx = secureRandom.nextInt(len(charset)) + 1;
+			password &= mid(charset, idx, 1);
+		}
+
+		return password;
 	}
 
 	// Wheels 3 compatibility: register shortcode callbacks even when legacy global functions are not auto-included

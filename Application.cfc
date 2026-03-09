@@ -90,6 +90,34 @@ component output="false" {
 		performVariableInterpolation(this.env);
 	}
 
+	// Configure datasources at runtime so DB host/credentials can be controlled via environment variables.
+	variables.runtimeDbHost = getRuntimeEnvValue("DB_HOST", "db");
+	variables.runtimeDbPort = getRuntimeEnvValue("DB_PORT", "3306");
+	variables.runtimeDbName = getRuntimeEnvValue("DB_NAME", "roombooking");
+	variables.runtimeDbUser = getRuntimeEnvValue("DB_USER", "roombooking");
+	variables.runtimeDbPassword = getRuntimeEnvValue("DB_PASSWORD", "roombooking123");
+	variables.runtimeDbCustom = "useUnicode=true&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+	variables.baseDatasource = {
+		type = "mysql",
+		host = variables.runtimeDbHost,
+		port = variables.runtimeDbPort,
+		database = variables.runtimeDbName,
+		username = variables.runtimeDbUser,
+		password = variables.runtimeDbPassword,
+		connectionLimit = 100,
+		connectionTimeout = 1,
+		metaCacheTimeout = 60000,
+		blob = true,
+		clob = true,
+		validate = false,
+		storage = false,
+		custom = variables.runtimeDbCustom
+	};
+	this.datasources = {
+		roombooking = duplicate(variables.baseDatasource),
+		app = duplicate(variables.baseDatasource)
+	};
+
 	function onServerStart() {}
 
 	include "./config/app.cfm";
@@ -346,6 +374,30 @@ component output="false" {
 		}
 
 		return local.url;
+	}
+
+	/**
+	 * Read runtime config value from system environment first, then .env values.
+	 */
+	private string function getRuntimeEnvValue(required string key, string defaultValue = "") {
+		try {
+			local.systemValue = createObject("java", "java.lang.System").getenv(arguments.key);
+			if (!isNull(local.systemValue) && len(trim(local.systemValue))) {
+				return trim(local.systemValue);
+			}
+		} catch (any e) {
+			// Ignore errors accessing system environment
+		}
+
+		if (
+			structKeyExists(this, "env")
+			&& structKeyExists(this.env, arguments.key)
+			&& len(trim(this.env[arguments.key] & ""))
+		) {
+			return trim(this.env[arguments.key] & "");
+		}
+
+		return arguments.defaultValue;
 	}
 
 	/**

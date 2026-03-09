@@ -13,16 +13,27 @@ git clone https://github.com/HarryDotMYx/RBS.git
 cd RBS
 ```
 
-### Step 2: Run Docker Compose
+### Step 2: Configure Environment Variables
 Ensure you are in the project root directory where the `docker-compose-v3.yml` file is located.
 
-Execute the following command:
+Create your local env file:
+```bash
+cp .env.example .env
+```
+
+Required values:
+- `ADMIN_EMAIL` (mandatory for auto-install)
+- `DB_PASSWORD`
+- `DB_ROOT_PASSWORD`
+
+### Step 3: Run Docker Compose
+Execute:
 ```bash
 docker-compose -f docker-compose-v3.yml up -d
 ```
 *Note: You must run this command from the project root, not from inside the `app-v251` folder.*
 
-### Step 3: Verify Status
+### Step 4: Verify Status
 Check that the containers are running properly.
 ```bash
 docker-compose -f docker-compose-v3.yml ps
@@ -35,7 +46,14 @@ docker-compose -f docker-compose-v3.yml ps
 Open your web browser and navigate to:
 - **`http://localhost:3999`** or **`http://<YOUR-SERVER-IP>:3999`**
 
-The system will automatically redirect you to the **Automated Setup Wizard** to initialize the database.
+Database schema and initial admin will be auto-created on first run (`AUTO_INSTALL=true`).
+
+To get the generated initial admin password:
+```bash
+docker-compose -f docker-compose-v3.yml logs --tail=100 appv3
+```
+Look for log entry:
+`RBS_AUTO_INSTALL_ADMIN email=... password=...`
 
 ---
 
@@ -49,11 +67,15 @@ The system will automatically redirect you to the **Automated Setup Wizard** to 
 *   Ensure that you have fully cloned the repository.
 *   Verify that you are inside the `RoomBooking-A` directory.
 
-### 3. Resetting the Installation
-If you need to restart the setup from scratch:
-1. Delete the lock file: `rm app-v251/config/install.lock`
-2. Restart the containers: `docker-compose -f docker-compose-v3.yml restart`
-3. Access the URL again in your browser.
+### 3. Error: `AUTO_INSTALL requires ADMIN_EMAIL to be set`
+*   **Cause**: `AUTO_INSTALL=true` but `ADMIN_EMAIL` is empty.
+*   **Solution**: Set `ADMIN_EMAIL` in `.env`, then restart app container.
+
+### 4. Resetting the Installation (fresh DB)
+If you need to restart from a clean database:
+1. Stop stack and remove DB volume: `docker-compose -f docker-compose-v3.yml down -v`
+2. Start again: `docker-compose -f docker-compose-v3.yml up -d`
+3. Read generated admin password from app logs.
 
 ---
 
