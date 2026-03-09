@@ -265,8 +265,11 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	*/
 	public void function create() {
 		if(structkeyexists(params, "event")){
-	    	event = model("event").new(params.event);
+			event = model("event").new(params.event);
 			if ( event.save() ) {
+				if(structKeyExists(params, "customfields") AND isStruct(params.customfields)){
+					updateCustomFields(objectname=request.modeltype, key=event.key(), customfields=params.customfields);
+				}
 				// Update approval status if allowed to bypass
 				if(application.rbs.setting.approveBooking AND checkPermission("bypassApproveBooking")){
 					event.status="approved";
@@ -321,14 +324,18 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 			AND !application.rbs.setting.isDemoMode){
 			// Get the location for reference
 			eventlocation=model("location").findOne(where="id = #arguments.event.locationid#");
-			sendEmail(
-			    to="#arguments.event.contactname# <#arguments.event.contactemail#>",
-			    bcc=iif(application.rbs.setting.bccAllEmail, '"#application.rbs.setting.bccAllEmailTo#"', ''),
-			    from="#application.rbs.setting.sitetitle# <#application.rbs.setting.siteEmailAddress#>",
-			    template="/email/bookingNotify",
-			    subject="Room Booking Notification (#event.status#)",
-			    event=arguments.event
-			);
+			try{
+				sendEmail(
+				    to="#arguments.event.contactname# <#arguments.event.contactemail#>",
+				    bcc=iif(application.rbs.setting.bccAllEmail, '"#application.rbs.setting.bccAllEmailTo#"', ''),
+				    from="#application.rbs.setting.sitetitle# <#application.rbs.setting.siteEmailAddress#>",
+				    template="/email/bookingNotify",
+				    subject="Room Booking Notification (#event.status#)",
+				    event=arguments.event
+				);
+			} catch(any mailError){
+				writeLog(file="application", type="error", text="[BOOKING_NOTIFY] Failed to send email for event ##arguments.event.key()##: ##mailError.message##");
+			}
 		}
 	}
 
@@ -337,10 +344,10 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	*/
 	public void function update() {
 		if(structkeyexists(params, "event")){
-	    	event = model("event").findOne(where="id = #params.key#", include="eventresources");
+			event = model("event").findOne(where="id = #params.key#", include="eventresources");
 			event.update(params.event);
 			if ( event.save() )  {
-				if(structKeyExists(params, "customfields")){
+				if(structKeyExists(params, "customfields") AND isStruct(params.customfields)){
 					customfields=updateCustomFields(objectname=request.modeltype, key=event.key(), customfields=params.customfields);
 				}
 				redirectTo(action="index", success="event successfully updated");

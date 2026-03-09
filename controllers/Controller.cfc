@@ -81,8 +81,10 @@ component extends="Wheels" hint="Global Controller"
 	/**
 	*  @hint Update Custom Fields for any model
 	*/
-	public void function updateCustomFields(required string objectname, required numeric key, required struct customfields) {
-
+	public void function updateCustomFields(required string objectname, required numeric key, struct customfields={}) {
+		if(!isStruct(arguments.customfields) || structIsEmpty(arguments.customfields)){
+			return;
+		}
 	 	for(field in arguments.customfields){
 	 		checkValue=model("customfieldjoin").findOne(where="customfieldsid=#field# AND customfieldchildid = #arguments.key#");
 	 		if(isObject(checkValue)){

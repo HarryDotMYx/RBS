@@ -80,10 +80,10 @@ component extends="Controller" hint="Locations Controller"
 	*/
 	public void function update() {
 		if(structkeyexists(params, "location")){
-	    	location = model("location").findOne(where="id = #params.key#");
+			location = model("location").findOne(where="id = #params.key#");
 			location.update(params.location);
 			if ( location.save() )  {
-				if(structkeyexists(params, "customfields")){
+				if(structkeyexists(params, "customfields") AND isStruct(params.customfields)){
 					customfields=updateCustomFields(objectname="location", key=params.key, customfields=params.customfields);
 				}
 				redirectTo(action="index", success="Location successfully updated");
