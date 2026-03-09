@@ -113,7 +113,7 @@ component extends="Controller" hint=""
 
 		tokenHash = model("user").hashResetToken(rawToken);
 		tokenLookup = queryExecute(
-			"SELECT id FROM users WHERE passwordResetToken = ? LIMIT 1",
+			"SELECT id FROM users WHERE passwordResetToken = ? AND deletedat IS NULL LIMIT 1",
 			[tokenHash],
 			{datasource=application.wheels.datasourcename}
 		);
@@ -123,7 +123,7 @@ component extends="Controller" hint=""
 
 		// Backward compatibility for old plaintext tokens issued before hashing rollout.
 		tokenLookup = queryExecute(
-			"SELECT id FROM users WHERE passwordResetToken = ? LIMIT 1",
+			"SELECT id FROM users WHERE passwordResetToken = ? AND deletedat IS NULL LIMIT 1",
 			[rawToken],
 			{datasource=application.wheels.datasourcename}
 		);

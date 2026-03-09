@@ -38,52 +38,72 @@ component extends="Controller" hint="Misc Event Data"
 	*/
 	public void function getevents() {
 		param name="params.type" default="";
-		if(
-			!structKeyExists(params, "start")
-			OR !structKeyExists(params, "end")
-			OR !isDate(params.start)
-			OR !isDate(params.end)
-		){
+		var rawStart = "";
+		var rawEnd = "";
+		if(structKeyExists(params, "start")){
+			rawStart = params.start;
+		} else if(structKeyExists(url, "start")){
+			rawStart = url.start;
+		} else if(structKeyExists(form, "start")){
+			rawStart = form.start;
+		}
+		if(structKeyExists(params, "end")){
+			rawEnd = params.end;
+		} else if(structKeyExists(url, "end")){
+			rawEnd = url.end;
+		} else if(structKeyExists(form, "end")){
+			rawEnd = form.end;
+		}
+
+		if(!len(trim(rawStart & "")) OR !len(trim(rawEnd & ""))){
 			renderText("[]");
 			return;
 		}
 
-		var parsedStart = parseDateTime(params.start);
-		var parsedEnd = parseDateTime(params.end);
+		var parsedStart = _parseCalendarDate(rawStart);
+		var parsedEnd = _parseCalendarDate(rawEnd);
+		if(!isDate(parsedStart) OR !isDate(parsedEnd)){
+			renderText("[]");
+			return;
+		}
 		var sd = createDateTime(year(parsedStart), month(parsedStart), day(parsedStart), 0, 0, 0);
 		var ed = createDateTime(year(parsedEnd), month(parsedEnd), day(parsedEnd), 0, 0, 0);
 		var safeType = lCase(trim(params.type & ""));
 		var sql = "
-			SELECT
-				e.id,
-				e.title,
-				e.locationid,
-				e.class,
-				e.start,
-				e.end,
-				e.allday,
-				e.status
-			FROM events e
-			INNER JOIN locations l ON l.id = e.locationid
-			WHERE e.start >= ? AND e.end <= ?
+				SELECT
+					e.id,
+					e.title,
+					e.locationid,
+					e.className,
+					l.class AS locationClass,
+					e.start,
+					e.end,
+					e.allday,
+					e.status
+				FROM events e
+				INNER JOIN locations l ON l.id = e.locationid
+				WHERE e.deletedat IS NULL AND e.start >= ? AND e.end <= ?
 		";
-		var bindings = [sd, ed];
+		var bindings = [
+			{value=sd, cfsqltype="cf_sql_timestamp"},
+			{value=ed, cfsqltype="cf_sql_timestamp"}
+		];
 
-		if(safeType EQ "building"){
-			if(!structKeyExists(params, "key") OR !len(trim(params.key & ""))){
-				renderText("[]");
-				return;
+			if(safeType EQ "building"){
+				if(!structKeyExists(params, "key") OR !len(trim(params.key & ""))){
+					renderText("[]");
+					return;
+				}
+				sql &= " AND l.building = ?";
+				arrayAppend(bindings, {value=fromTagSafe(params.key), cfsqltype="cf_sql_varchar"});
+			} else if(safeType EQ "location"){
+				if(!structKeyExists(params, "key") OR !isNumeric(params.key)){
+					renderText("[]");
+					return;
+				}
+				sql &= " AND e.locationid = ?";
+				arrayAppend(bindings, {value=val(params.key), cfsqltype="cf_sql_integer"});
 			}
-			sql &= " AND l.building = ?";
-			arrayAppend(bindings, fromTagSafe(params.key));
-		} else if(safeType EQ "location"){
-			if(!structKeyExists(params, "key") OR !isNumeric(params.key)){
-				renderText("[]");
-				return;
-			}
-			sql &= " AND e.locationid = ?";
-			arrayAppend(bindings, val(params.key));
-		}
 
 		sql &= " ORDER BY e.start ASC";
 		data = queryExecute(
@@ -99,7 +119,36 @@ component extends="Controller" hint="Misc Event Data"
 	*  @hint get single event via ajax, i.e for modals
 	*/
 	public void function getevent() {
-		event=model("location").findAll(where="events.id = #val(params.key)#", include="events(eventresources)");
+		var safeEventId = val(params.key);
+		event = queryExecute(
+			"
+				SELECT
+					e.id AS eventid,
+					e.title,
+					e.start,
+					e.end,
+					e.status,
+					e.layoutstyle,
+					e.contactname,
+					e.contactemail,
+					e.contactno,
+					e.description AS eventdescription,
+					e.locationid,
+					0 AS locationmissing,
+					l.name,
+					COALESCE(l.description, '') AS description,
+					er.resourceid
+				FROM events e
+				INNER JOIN locations l ON l.id = e.locationid
+				LEFT JOIN eventresources er ON er.eventid = e.id
+				WHERE e.deletedat IS NULL AND e.id = ?
+				ORDER BY er.resourceid ASC
+			",
+			[
+				{value=safeEventId, cfsqltype="cf_sql_integer"}
+			],
+			{datasource=application.wheels.datasourcename}
+		);
 		if (!isQuery(event) OR !event.recordcount) {
 			renderText('<div class="alert alert-warning"><strong>Event not found.</strong></div>');
 			return;
@@ -107,30 +156,56 @@ component extends="Controller" hint="Misc Event Data"
 		renderView(action="getevent", layout=false);
 	}
 /******************** Private *********************/
- 	/**
- 	*  @hint Sort out event data
- 	*/
- 	private array function prepeventdata(data) {
- 		var events=[];
- 		var c=1;
+	 	/**
+	 	*  @hint Sort out event data
+	 	*/
+	 	private array function prepeventdata(data) {
+	 		var events=[];
+	 		var c=1;
 
- 		for(event in arguments.data){
-			events[c]["id"]=event.id;
-			events[c]["title"]=event.title;
-			events[c]["start"]=_f_d(event.start);
-			events[c]["end"]=_f_d(event.end);
-			events[c]["allDay"]=event.allDay;
-			events[c]["className"]=event.class & ' ' & event.status;
-			c++;
- 		}
- 		return events;
- 	}
+	 		for(event in arguments.data){
+				var eventCssClass = trim(event.className & "");
+				var roomCssClass = reReplaceNoCase(event.locationClass & "", "[^a-z0-9_-]", "", "all");
+				var statusCssClass = reReplaceNoCase(lCase(event.status & ""), "[^a-z0-9_-]", "", "all");
+
+				events[c]["id"]=event.id;
+				events[c]["title"]=event.title;
+				events[c]["start"]=_f_d(event.start);
+				events[c]["end"]=_f_d(event.end);
+				events[c]["allDay"]=event.allDay;
+				events[c]["className"]=trim(listAppend(listAppend(eventCssClass, roomCssClass, " "), statusCssClass, " "));
+				c++;
+	 		}
+	 		return events;
+	 	}
  	/**
  	*  @hint Experimental date format
  	*/
  	private string function _f_d(str) {
  	 return dateFormat(arguments.str, "YYYY-MM-DD") & "T" & timeFormat(arguments.str, "HH:MM:00");
  	}
+
+	private any function _parseCalendarDate(required any rawValue) {
+		var v = trim(rawValue & "");
+		if(!len(v)){
+			return "";
+		}
+
+		if(isNumeric(v)){
+			var n = val(v);
+			// Accept Unix timestamp in either seconds or milliseconds.
+			if(n GT 1000000000000){
+				n = int(n / 1000);
+			}
+			return dateAdd("s", n, createDateTime(1970, 1, 1, 0, 0, 0));
+		}
+
+		try {
+			return parseDateTime(v);
+		} catch(any e) {
+			return "";
+		}
+	}
 
  		/**
 	*  @hint Sets the model type to use with Custom Fields + Templates

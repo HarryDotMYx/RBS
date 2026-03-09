@@ -201,19 +201,15 @@ component extends="Controller" hint="Main User Controller"
 						redirectTo(controller="users", action="index", error="Admin accounts cannot be purged.");
 						return;
 					}
-					if(structKeyExists(session, "currentUser") && structKeyExists(session.currentUser, "id") && val(session.currentUser.id) EQ val(params.key)){
-						redirectTo(controller="users", action="index", error="You cannot purge your own account.");
+						if(structKeyExists(session, "currentUser") && structKeyExists(session.currentUser, "id") && val(session.currentUser.id) EQ val(params.key)){
+							redirectTo(controller="users", action="index", error="You cannot purge your own account.");
+							return;
+						}
+
+						_purgeUserById(val(params.key));
+						redirectTo(controller="users", action="index", success="User permanently deleted.");
 						return;
 					}
-
-					queryExecute(
-						"DELETE FROM users WHERE id = ?",
-						[val(params.key)],
-						{datasource=application.wheels.datasourcename}
-					);
-					redirectTo(controller="users", action="index", success="User permanently deleted.");
-					return;
-				}
 			} else {
 				redirectTo(controller="users", action="index", success="Not updated in demo mode");
 			}

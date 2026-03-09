@@ -41,9 +41,9 @@ component extends="Controller" hint="Manage Logfiles"
 		}
 		if(arrayLen(wc)){
 			wc = arrayToList(wc, " AND ");
-			logfiles=model("logfiles").findAll(where="#wc#", maxrows=params.rows,  order="createdAt DESC", includeSoftDeletes=true);
+			logfiles=model("logfiles").findAll(where="#wc#", maxrows=params.rows, order="createdAt DESC");
 		} else {
-			logfiles=model("logfiles").findAll(maxrows=params.rows, order="createdAt DESC", includeSoftDeletes=true);
+			logfiles=model("logfiles").findAll(maxrows=params.rows, order="createdAt DESC");
 		}
 	}
 /******************** Admin ***********************/

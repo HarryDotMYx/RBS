@@ -8207,8 +8207,45 @@ be a descendant of the grid when it is being dragged.
   cursor: pointer;
 }
 /*************** RBS / layout *******************/
+.navbar .navbar-brand {
+  display: flex;
+  align-items: center;
+}
 .navbar .logo {
+  display: block;
+  float: none !important;
+  max-height: 24px;
+  width: auto;
   margin-right: 10px;
+}
+.navbar .navbar-action-form {
+  margin: 0;
+}
+.navbar .navbar-action-button {
+  display: block;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #9d9d9d;
+  line-height: 20px;
+  padding: 15px;
+  text-align: left;
+  text-decoration: none;
+}
+.navbar .navbar-action-button:hover,
+.navbar .navbar-action-button:focus {
+  color: #fff;
+  text-decoration: none;
+}
+@media (max-width: 767px) {
+  .navbar .navbar-brand {
+    max-width: calc(100% - 70px);
+  }
+  .navbar .navbar-action-button {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
 }
 .location-filter,
 .fc-event {

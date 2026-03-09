@@ -106,6 +106,240 @@ component extends="Wheels" hint="Global Controller"
 	 	}
 	}
 
+	public boolean function _purgeEventById(required numeric eventId) {
+		var safeEventId = val(arguments.eventId);
+		if(safeEventId LTE 0){
+			return false;
+		}
+		_purgeCustomFieldDataForObject("event", safeEventId);
+		queryExecute(
+			"DELETE FROM eventresources WHERE eventid = ?",
+			[{value=safeEventId, cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		queryExecute(
+			"DELETE FROM events WHERE id = ?",
+			[{value=safeEventId, cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		return true;
+	}
+
+	public numeric function _purgeEventsForLocation(required numeric locationId) {
+		var safeLocationId = val(arguments.locationId);
+		var eventIds = queryNew("");
+		var deletedCount = 0;
+		if(safeLocationId LTE 0){
+			return 0;
+		}
+		eventIds = queryExecute(
+			"SELECT id FROM events WHERE locationid = ?",
+			[{value=safeLocationId, cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		for(var row=1; row LTE eventIds.recordCount; row++){
+			if(_purgeEventById(val(eventIds.id[row]))){
+				deletedCount++;
+			}
+		}
+		return deletedCount;
+	}
+
+	public boolean function _purgeLocationById(required numeric locationId) {
+		var safeLocationId = val(arguments.locationId);
+		var eventValueIds = queryNew("");
+		if(safeLocationId LTE 0){
+			return false;
+		}
+		eventValueIds = queryExecute(
+			"
+				SELECT DISTINCT cfj.customfieldvalueid
+				FROM customfieldjoins cfj
+				INNER JOIN customfields cf ON cf.id = cfj.customfieldsid
+				INNER JOIN events e ON e.id = cfj.customfieldchildid
+				WHERE cf.parentmodel = 'event'
+				AND e.locationid = ?
+				AND cfj.customfieldvalueid > 0
+			",
+			[{value=safeLocationId, cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		queryExecute(
+			"
+				DELETE cfj
+				FROM customfieldjoins cfj
+				INNER JOIN customfields cf ON cf.id = cfj.customfieldsid
+				INNER JOIN events e ON e.id = cfj.customfieldchildid
+				WHERE cf.parentmodel = 'event'
+				AND e.locationid = ?
+			",
+			[{value=safeLocationId, cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		_purgeCustomFieldValuesIfUnreferenced(eventValueIds);
+		queryExecute(
+			"
+				DELETE er
+				FROM eventresources er
+				INNER JOIN events e ON e.id = er.eventid
+				WHERE e.locationid = ?
+			",
+			[{value=safeLocationId, cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		queryExecute(
+			"DELETE FROM events WHERE locationid = ?",
+			[{value=safeLocationId, cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		_purgeCustomFieldDataForObject("location", safeLocationId);
+		queryExecute(
+			"DELETE FROM locations WHERE id = ?",
+			[{value=safeLocationId, cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		return true;
+	}
+
+	public boolean function _purgeResourceById(required numeric resourceId) {
+		var safeResourceId = val(arguments.resourceId);
+		if(safeResourceId LTE 0){
+			return false;
+		}
+		queryExecute(
+			"DELETE FROM eventresources WHERE resourceid = ?",
+			[{value=safeResourceId, cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		_purgeCustomFieldDataForObject("resource", safeResourceId);
+		queryExecute(
+			"DELETE FROM resources WHERE id = ?",
+			[{value=safeResourceId, cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		return true;
+	}
+
+	public boolean function _purgeCustomFieldById(required numeric customFieldId) {
+		var safeCustomFieldId = val(arguments.customFieldId);
+		var valueIds = queryNew("");
+		if(safeCustomFieldId LTE 0){
+			return false;
+		}
+		valueIds = queryExecute(
+			"SELECT DISTINCT customfieldvalueid FROM customfieldjoins WHERE customfieldsid = ? AND customfieldvalueid > 0",
+			[{value=safeCustomFieldId, cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		queryExecute(
+			"DELETE FROM customfieldjoins WHERE customfieldsid = ?",
+			[{value=safeCustomFieldId, cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		_purgeCustomFieldValuesIfUnreferenced(valueIds);
+		queryExecute(
+			"DELETE FROM customfields WHERE id = ?",
+			[{value=safeCustomFieldId, cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		return true;
+	}
+
+	public boolean function _purgeTemplateByParentAndType(required string parentModel, required string templateType) {
+		queryExecute(
+			"DELETE FROM templates WHERE parentmodel = ? AND type = ?",
+			[
+				{value=arguments.parentModel & "", cfsqltype="cf_sql_varchar"},
+				{value=arguments.templateType & "", cfsqltype="cf_sql_varchar"}
+			],
+			{datasource=application.wheels.datasourcename}
+		);
+		return true;
+	}
+
+	public boolean function _purgeUserById(required numeric userId) {
+		var safeUserId = val(arguments.userId);
+		if(safeUserId LTE 0){
+			return false;
+		}
+		queryExecute(
+			"UPDATE events SET userid = 0 WHERE userid = ?",
+			[{value=safeUserId, cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		queryExecute(
+			"DELETE FROM logfiles WHERE userid = ?",
+			[{value=safeUserId, cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		queryExecute(
+			"DELETE FROM users WHERE id = ?",
+			[{value=safeUserId, cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		return true;
+	}
+
+	public void function _purgeCustomFieldDataForObject(required string objectName, required numeric recordId) {
+		var safeRecordId = val(arguments.recordId);
+		var valueIds = queryNew("");
+		if(safeRecordId LTE 0){
+			return;
+		}
+		valueIds = queryExecute(
+			"
+				SELECT DISTINCT cfj.customfieldvalueid
+				FROM customfieldjoins cfj
+				INNER JOIN customfields cf ON cf.id = cfj.customfieldsid
+				WHERE cf.parentmodel = ?
+				AND cfj.customfieldchildid = ?
+				AND cfj.customfieldvalueid > 0
+			",
+			[
+				{value=arguments.objectName & "", cfsqltype="cf_sql_varchar"},
+				{value=safeRecordId, cfsqltype="cf_sql_integer"}
+			],
+			{datasource=application.wheels.datasourcename}
+		);
+		queryExecute(
+			"
+				DELETE cfj
+				FROM customfieldjoins cfj
+				INNER JOIN customfields cf ON cf.id = cfj.customfieldsid
+				WHERE cf.parentmodel = ?
+				AND cfj.customfieldchildid = ?
+			",
+			[
+				{value=arguments.objectName & "", cfsqltype="cf_sql_varchar"},
+				{value=safeRecordId, cfsqltype="cf_sql_integer"}
+			],
+			{datasource=application.wheels.datasourcename}
+		);
+		_purgeCustomFieldValuesIfUnreferenced(valueIds);
+	}
+
+	public void function _purgeCustomFieldValuesIfUnreferenced(required query valueIds) {
+		for(var row=1; row LTE arguments.valueIds.recordCount; row++){
+			var safeValueId = val(arguments.valueIds.customfieldvalueid[row]);
+			var remainingRef = queryNew("");
+			if(safeValueId LTE 0){
+				continue;
+			}
+			remainingRef = queryExecute(
+				"SELECT 1 FROM customfieldjoins WHERE customfieldvalueid = ? LIMIT 1",
+				[{value=safeValueId, cfsqltype="cf_sql_integer"}],
+				{datasource=application.wheels.datasourcename}
+			);
+			if(!remainingRef.recordCount){
+				queryExecute(
+					"DELETE FROM customfieldvalues WHERE id = ?",
+					[{value=safeValueId, cfsqltype="cf_sql_integer"}],
+					{datasource=application.wheels.datasourcename}
+				);
+			}
+		}
+	}
+
 
 
 
@@ -228,7 +462,7 @@ component extends="Wheels" hint="Global Controller"
 			return;
 		}
 		userLookup = queryExecute(
-			"SELECT id FROM users WHERE id = ? AND email = ? LIMIT 1",
+			"SELECT id FROM users WHERE id = ? AND email = ? AND deletedat IS NULL LIMIT 1",
 			[safeUserId, safeEmail],
 			{datasource=application.wheels.datasourcename}
 		);

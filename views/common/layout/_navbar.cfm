@@ -10,7 +10,7 @@
           </button>
 	          <a class="navbar-brand" href="#application.wheels.rootpath#">
 	            <cfif len(application.rbs.setting.sitelogo) GT 1>
-	              <img src="#h(application.rbs.setting.sitelogo)#" alt="Logo" class="img-responsive pull-left logo" />
+	              <img src="#h(application.rbs.setting.sitelogo)#" alt="Logo" class="img-responsive logo" />
 	            </cfif>
 	            <cfif len(application.rbs.setting.sitetitle) GT 1>
 	              #h(application.rbs.setting.sitetitle)#
@@ -78,7 +78,7 @@
           </cfif>
           
 	            <cfif isLoggedIn()>
-	              <li>#buttonTo(route="logout", text="<span class='glyphicon glyphicon-off'></span> Logout", class="navbar-btn", inputClass="btn btn-link navbar-btn", encode=false)#</li>
+	              <li class="navbar-action">#buttonTo(route="logout", text="<span class='glyphicon glyphicon-off'></span> Logout", class="navbar-action-form", inputClass="btn btn-link navbar-action-button", encode=false)#</li>
 	            <cfelse>
               <li class="hidden-lg">#linkTo(route="login", text="<span class='glyphicon glyphicon-lock'></span> Login", encode=false)#</li>
               <li class="dropdown visible-lg">

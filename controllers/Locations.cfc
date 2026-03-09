@@ -113,12 +113,64 @@ component extends="Controller" hint="Locations Controller"
 		if(checkLocation.recordcount GT 1){
 			 if(structkeyexists(params, "key")){
 			    	location = model("location").findOne(where="id = #val(params.key)#");
-				if ( location.delete() )  {
-					redirectTo(action="index", success="Location successfully deleted");
+				if(!isObject(location)){
+					redirectTo(action="index", error="That location no longer exists.");
+					return;
 				}
-		        else {
-					redirectTo(action="index", error="There were problems deleting that Location");
-				}
+				queryExecute(
+					"
+						DELETE cfj
+						FROM customfieldjoins cfj
+						INNER JOIN customfields cf ON cf.id = cfj.customfieldsid
+						INNER JOIN events e ON e.id = cfj.customfieldchildid
+						WHERE cf.parentmodel = 'event'
+						AND e.locationid = ?
+					",
+					[{value=val(location.id), cfsqltype="cf_sql_integer"}],
+					{datasource=application.wheels.datasourcename}
+				);
+				queryExecute(
+					"
+						DELETE cfj
+						FROM customfieldjoins cfj
+						INNER JOIN customfields cf ON cf.id = cfj.customfieldsid
+						WHERE cf.parentmodel = 'location'
+						AND cfj.customfieldchildid = ?
+					",
+					[{value=val(location.id), cfsqltype="cf_sql_integer"}],
+					{datasource=application.wheels.datasourcename}
+				);
+				queryExecute(
+					"
+						DELETE er
+						FROM eventresources er
+						INNER JOIN events e ON e.id = er.eventid
+						WHERE e.locationid = ?
+					",
+					[{value=val(location.id), cfsqltype="cf_sql_integer"}],
+					{datasource=application.wheels.datasourcename}
+				);
+				queryExecute(
+					"DELETE FROM events WHERE locationid = ?",
+					[{value=val(location.id), cfsqltype="cf_sql_integer"}],
+					{datasource=application.wheels.datasourcename}
+				);
+				queryExecute(
+					"DELETE FROM locations WHERE id = ?",
+					[{value=val(location.id), cfsqltype="cf_sql_integer"}],
+					{datasource=application.wheels.datasourcename}
+				);
+				queryExecute(
+					"
+						DELETE cfv
+						FROM customfieldvalues cfv
+						LEFT JOIN customfieldjoins cfj ON cfj.customfieldvalueid = cfv.id
+						WHERE cfj.customfieldvalueid IS NULL
+					",
+					[],
+					{datasource=application.wheels.datasourcename}
+				);
+				redirectTo(action="index", success="Location successfully deleted");
 			}
 		} else {
  			redirectTo(action="index", error="At least one Location is required.");

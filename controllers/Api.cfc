@@ -122,7 +122,7 @@ component extends="Controller" hint="RSS/ICal Etc"
 		var tokenValue = _extractApiToken();
 		if(len(tokenValue) GT 25){
 			var tokenCheck = queryExecute(
-				"SELECT id FROM users WHERE apitoken = ? LIMIT 1",
+				"SELECT id FROM users WHERE apitoken = ? AND deletedat IS NULL LIMIT 1",
 				[tokenValue],
 				{datasource=application.wheels.datasourcename}
 			);

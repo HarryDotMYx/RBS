@@ -37,12 +37,27 @@ component extends="Model" hint="User Model"
 	public void function securePassword() {
 		var hasPassword = structKeyExists(this, "password");
 		var passwordValue = hasPassword ? trim(toString(this.password)) : "";
+		var alreadyHashedThisRequest = structKeyExists(variables, "passwordHashedThisRequest") AND variables.passwordHashedThisRequest;
+		var passwordLooksStored = _looksLikeStoredPasswordHash(passwordValue);
+
+		if (alreadyHashedThisRequest AND passwordLooksStored) {
+			return;
+		}
+
 		// Only hash when a non-empty password is explicitly supplied.
 		if (len(passwordValue)) {
+			if (!isPasswordChanging() AND passwordLooksStored) {
+				return;
+			}
+			variables.pendingPasswordPlain = passwordValue;
+			variables.passwordHashedThisRequest = true;
 	     	this.password = _generateAdaptivePasswordHash(passwordValue);
 	     	// Keep legacy salt column blank once account is migrated to PBKDF2.
 	     	this.salt = "";
-	     }
+	     } else {
+			structDelete(variables, "pendingPasswordPlain");
+			structDelete(variables, "passwordHashedThisRequest");
+		}
 	}
 
 	/**
@@ -75,7 +90,9 @@ component extends="Model" hint="User Model"
 	public void function validatePasswordMatch() {
 		// Only run validation if we are intending to change the password
 		if (isPasswordChanging()) {
-			var passwordValue = structKeyExists(this, "password") ? trim(toString(this.password)) : "";
+			var passwordValue = structKeyExists(variables, "pendingPasswordPlain")
+				? trim(variables.pendingPasswordPlain & "")
+				: (structKeyExists(this, "password") ? trim(toString(this.password)) : "");
 			var confirmationValue = structKeyExists(this, "passwordConfirmation") ? trim(toString(this.passwordConfirmation)) : "";
 			if (passwordValue NEQ confirmationValue) {
 				addError(property="passwordConfirmation", message="Your passwords must match!");
@@ -87,12 +104,29 @@ component extends="Model" hint="User Model"
 	*  @hint Password to blank
 	*/
 	public void function passwordToBlank() {
+		if ( StructKeyExists(variables, "pendingPasswordPlain") ) {
+			structDelete(variables, "pendingPasswordPlain");
+		}
+		if ( StructKeyExists(variables, "passwordHashedThisRequest") ) {
+			structDelete(variables, "passwordHashedThisRequest");
+		}
 		if ( StructKeyExists(this, "password") ){
 			this.password = "";
 		}
 		if ( StructKeyExists(this, "passwordConfirmation") ) {
 			this.passwordConfirmation = "";
 		}
+	}
+
+	private boolean function _looksLikeStoredPasswordHash(required string value) {
+		var candidate = trim(arguments.value & "");
+		if (!len(candidate)) {
+			return false;
+		}
+		if (left(candidate, 14) EQ "pbkdf2_sha256$") {
+			return true;
+		}
+		return reFindNoCase("^[0-9a-f]{128}$", candidate) EQ 1;
 	}
 
 	/**

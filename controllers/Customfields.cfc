@@ -61,7 +61,11 @@ component extends="Controller" hint="Custom Fields and Templating"
 	*  @hint Edit Custom Field
 	*/
 	public void function edit() {
-		customfield=model("customfield").findOne(where="id = #val(params.key)#");
+		customfield = _findCustomFieldById(params.key);
+		if(!isObject(customfield)){
+			redirectTo(action="index", error="Sorry, that field can't be found");
+			return;
+		}
 	}
 
 	/**
@@ -72,7 +76,11 @@ component extends="Controller" hint="Custom Fields and Templating"
 			return;
 		}
 		if(structkeyexists(params, "customfield")){
-	    	customfield = model("customfield").findOne(where="id = #val(params.key)#");
+	    	customfield = _findCustomFieldById(params.key);
+			if(!isObject(customfield)){
+				redirectTo(action="index", error="Sorry, that field can't be found");
+				return;
+			}
 			customfield.update(params.customfield);
 			if ( customfield.save() )  {
 				redirectTo(action="index", success="customfield successfully updated");
@@ -90,13 +98,32 @@ component extends="Controller" hint="Custom Fields and Templating"
 		if(!requirePostRequest()){
 			return;
 		}
-	    	customfield = model("customfield").findOne(where="id = #val(params.key)#");
-		if ( customfield.delete() )  {
-			redirectTo(action="index", success="customfield successfully deleted");
+	    	customfield = _findCustomFieldById(params.key);
+		if(!isObject(customfield)){
+			redirectTo(action="index", error="Sorry, that field can't be found");
+			return;
 		}
-        else {
-			redirectTo(action="index", error="There were problems deleting that customfield");
-		}
+		queryExecute(
+			"DELETE FROM customfieldjoins WHERE customfieldsid = ?",
+			[{value=val(customfield.id), cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		queryExecute(
+			"DELETE FROM customfields WHERE id = ?",
+			[{value=val(customfield.id), cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		queryExecute(
+			"
+				DELETE cfv
+				FROM customfieldvalues cfv
+				LEFT JOIN customfieldjoins cfj ON cfj.customfieldvalueid = cfv.id
+				WHERE cfj.customfieldvalueid IS NULL
+			",
+			[],
+			{datasource=application.wheels.datasourcename}
+		);
+		redirectTo(action="index", success="customfield successfully deleted");
 	}
 
 /******************** Templating ***********************/
@@ -130,9 +157,11 @@ component extends="Controller" hint="Custom Fields and Templating"
 	*  @hint Edit Template
 	*/
 	public void function edittemplate() {
-		var safeParentModel = replace(params.key & "", "'", "''", "all");
-		var safeTemplateType = replace(params.type & "", "'", "''", "all");
-		template=model("template").findOne(where="parentmodel = '#safeParentModel#' AND type='#safeTemplateType#'");
+		template = _findTemplateByParentAndType(params.key, params.type);
+		if(!isObject(template)){
+			redirectTo(action="index", error="Sorry, that template can't be found");
+			return;
+		}
 	}
 
 	/**
@@ -143,9 +172,11 @@ component extends="Controller" hint="Custom Fields and Templating"
 			return;
 		}
 		if(structkeyexists(params, "template")){
-	    	var safeParentModel = replace(params.key & "", "'", "''", "all");
-	    	var safeTemplateType = replace(params.type & "", "'", "''", "all");
-	    	template = model("template").findOne(where="parentmodel = '#safeParentModel#' AND type='#safeTemplateType#'");
+	    	template = _findTemplateByParentAndType(params.key, params.type);
+			if(!isObject(template)){
+				redirectTo(action="index", error="Sorry, that template can't be found");
+				return;
+			}
 			template.update(params.template);
 			if ( template.save() )  {
 				redirectTo(action="index", success="template successfully updated");
@@ -163,17 +194,34 @@ component extends="Controller" hint="Custom Fields and Templating"
 		if(!requirePostRequest()){
 			return;
 		}
-	    	var safeParentModel = replace(params.key & "", "'", "''", "all");
-	    	var safeTemplateType = replace(params.type & "", "'", "''", "all");
-	    	template = model("template").findOne(where="parentmodel = '#safeParentModel#' AND type='#safeTemplateType#'");
-		if ( template.delete() )  {
-			redirectTo(action="index", success="template successfully deleted");
+	    	template = _findTemplateByParentAndType(params.key, params.type);
+		if(!isObject(template)){
+			redirectTo(action="index", error="Sorry, that template can't be found");
+			return;
 		}
-        else {
-			redirectTo(action="index", error="There were problems deleting that template");
-		}
+		queryExecute(
+			"DELETE FROM templates WHERE parentmodel = ? AND type = ?",
+			[
+				{value=template.parentmodel & "", cfsqltype="cf_sql_varchar"},
+				{value=template.type & "", cfsqltype="cf_sql_varchar"}
+			],
+			{datasource=application.wheels.datasourcename}
+		);
+		redirectTo(action="index", success="template successfully deleted");
 	}
 /******************** Private *********************/
+	private any function _findCustomFieldById(required any keyValue) {
+		if(!isNumeric(arguments.keyValue)){
+			return false;
+		}
+		return model("customfield").findOne(where="id = #val(arguments.keyValue)#");
+	}
+
+	private any function _findTemplateByParentAndType(required any parentModel, required any templateType) {
+		var safeParentModel = replace(arguments.parentModel & "", "'", "''", "all");
+		var safeTemplateType = replace(arguments.templateType & "", "'", "''", "all");
+		return model("template").findOne(where="parentmodel = '#safeParentModel#' AND type='#safeTemplateType#'");
+	}
 
 /******************** Ajax/Remote/Misc*************/
 	/**

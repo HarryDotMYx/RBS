@@ -35,22 +35,27 @@
 			</p>
 		</div>
 
-		<div class="event-popup-body">
-			<cfif application.rbs.setting.approveBooking>
-				<cfif event.status EQ "denied">
-					<div class="alert alert-danger event-popup-note">
-						<strong><i class="glyphicon glyphicon-remove"></i> Denied</strong> This booking has been denied.
+			<div class="event-popup-body">
+				<cfif application.rbs.setting.approveBooking>
+					<cfif event.status EQ "denied">
+						<div class="alert alert-danger event-popup-note">
+							<strong><i class="glyphicon glyphicon-remove"></i> Denied</strong> This booking has been denied.
 					</div>
 				</cfif>
-				<cfif event.status EQ "pending">
+					<cfif event.status EQ "pending">
+						<div class="alert alert-warning event-popup-note">
+							<strong><i class="glyphicon glyphicon-warning-sign"></i> Pending Approval</strong> This booking is pending approval from an administrator.
+						</div>
+					</cfif>
+				</cfif>
+				<cfif val(event.locationmissing)>
 					<div class="alert alert-warning event-popup-note">
-						<strong><i class="glyphicon glyphicon-warning-sign"></i> Pending Approval</strong> This booking is pending approval from an administrator.
+						<strong><i class="glyphicon glyphicon-warning-sign"></i> Room Removed</strong> This booking still exists, but its original room record has been deleted.
 					</div>
 				</cfif>
-			</cfif>
 
-			<div class="row event-popup-meta">
-				<div class="col-sm-6">
+				<div class="row event-popup-meta">
+					<div class="col-sm-6">
 					<div class="meta-label"><i class="glyphicon glyphicon-time"></i> From</div>
 					<div class="meta-value">#dateFormat(event.start, "dd mmm yyyy")# #timeFormat(event.start, "HH:mm")#</div>
 				</div>

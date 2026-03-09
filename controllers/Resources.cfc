@@ -89,12 +89,21 @@ component extends="Controller" hint="Resources Controller"
 			return;
 		}
 	    	resource = model("resource").findOne(where="id = #val(params.key)#");
-		if ( resource.delete() )  {
-			redirectTo(action="index", success="resource successfully deleted");
+		if(!isObject(resource)){
+			redirectTo(action="index", error="That resource no longer exists.");
+			return;
 		}
-        else {
-			redirectTo(action="index", error="There were problems deleting that resource");
-		}
+		queryExecute(
+			"DELETE FROM eventresources WHERE resourceid = ?",
+			[{value=val(resource.id), cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		queryExecute(
+			"DELETE FROM resources WHERE id = ?",
+			[{value=val(resource.id), cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		redirectTo(action="index", success="resource successfully deleted");
 	}
 
 /******************** Private *********************/

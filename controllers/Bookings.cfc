@@ -250,12 +250,44 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 			// Notify Contact if Appropriate
 			notifyContact(event);
 			if(structKeyExists(params, "delete") AND params.delete){
-				event.delete();
+				queryExecute(
+					"
+						DELETE cfj
+						FROM customfieldjoins cfj
+						INNER JOIN customfields cf ON cf.id = cfj.customfieldsid
+						WHERE cf.parentmodel = 'event'
+						AND cfj.customfieldchildid = ?
+					",
+					[{value=val(event.id), cfsqltype="cf_sql_integer"}],
+					{datasource=application.wheels.datasourcename}
+				);
+				queryExecute(
+					"DELETE FROM eventresources WHERE eventid = ?",
+					[{value=val(event.id), cfsqltype="cf_sql_integer"}],
+					{datasource=application.wheels.datasourcename}
+				);
+				queryExecute(
+					"DELETE FROM events WHERE id = ?",
+					[{value=val(event.id), cfsqltype="cf_sql_integer"}],
+					{datasource=application.wheels.datasourcename}
+				);
+				queryExecute(
+					"
+						DELETE cfv
+						FROM customfieldvalues cfv
+						LEFT JOIN customfieldjoins cfj ON cfj.customfieldvalueid = cfv.id
+						WHERE cfj.customfieldvalueid IS NULL
+					",
+					[],
+					{datasource=application.wheels.datasourcename}
+				);
 				redirectTo(success="#encodeForHTML(event.title & "")# was denied & deleted", back=true);
 			} else {
 				redirectTo(success="#encodeForHTML(event.title & "")# was denied", back=true);
 			}
+			return;
 		}
+		redirectTo(error="That event no longer exists.", back=true);
 	}
 
 	/**
@@ -444,12 +476,42 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 			return;
 		}
 	    	event = model("event").findOne(where="id = #val(params.key)#", include="eventresources");
-		if ( event.delete() )  {
-			redirectTo(action="index", success="event successfully deleted");
+		if(!isObject(event)){
+			redirectTo(action="index", error="That event no longer exists");
+			return;
 		}
-        else {
-			redirectTo(action="index", error="There were problems deleting that event");
-		}
+		queryExecute(
+			"
+				DELETE cfj
+				FROM customfieldjoins cfj
+				INNER JOIN customfields cf ON cf.id = cfj.customfieldsid
+				WHERE cf.parentmodel = 'event'
+				AND cfj.customfieldchildid = ?
+			",
+			[{value=val(event.id), cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		queryExecute(
+			"DELETE FROM eventresources WHERE eventid = ?",
+			[{value=val(event.id), cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		queryExecute(
+			"DELETE FROM events WHERE id = ?",
+			[{value=val(event.id), cfsqltype="cf_sql_integer"}],
+			{datasource=application.wheels.datasourcename}
+		);
+		queryExecute(
+			"
+				DELETE cfv
+				FROM customfieldvalues cfv
+				LEFT JOIN customfieldjoins cfj ON cfj.customfieldvalueid = cfv.id
+				WHERE cfj.customfieldvalueid IS NULL
+			",
+			[],
+			{datasource=application.wheels.datasourcename}
+		);
+		redirectTo(action="index", success="event successfully deleted");
 	}
 	/******************** Private *********************/
 	/**
@@ -462,7 +524,7 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 		}
 
 		var ownershipRow = queryExecute(
-			"SELECT userid, contactemail FROM events WHERE id = ? LIMIT 1",
+			"SELECT userid, contactemail FROM events WHERE id = ? AND deletedat IS NULL LIMIT 1",
 			[val(params.key)],
 			{datasource=application.wheels.datasourcename}
 		);
