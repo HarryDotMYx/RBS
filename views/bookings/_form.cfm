@@ -73,6 +73,17 @@
 	restrictResources(false);
 	// Override default Layouts if appropriate
 	checkLayouts();
+	// Force a stable datetime format so prefilled values (e.g. 10 Mar 2026 04:00) parse correctly
+	(function syncDatePickerFormat(){
+		var startPicker = $("#event-start").data("DateTimePicker"),
+			endPicker = $("#event-end").data("DateTimePicker");
+		if(startPicker){
+			startPicker.format("DD MMM YYYY HH:mm");
+		}
+		if(endPicker){
+			endPicker.format("DD MMM YYYY HH:mm");
+		}
+	})();
 	// For create flow, prevent selecting dates before today
 	<cfif params.action EQ "add" OR params.action EQ "create">
 		(function lockPastStartDate(){
