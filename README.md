@@ -18,16 +18,19 @@
 
 ---
 
-## 🚦 Current Status
+## 🚦 Current Status (Updated: 2026-03-09)
 
 | Feature | Status |
 |---|---|
 | App boot & routing | ✅ Working |
-| Login / session management | ✅ Fixed |
+| Login / session management | ✅ Working |
+| Users: create account via UI | ✅ Fixed (`variable [PASSWORD] doesn't exist` resolved) |
+| Users: update account without password | ✅ Fixed (password only required when intentionally changing it) |
 | Locations list & view | ✅ Fixed |
 | Calendar events feed | ✅ Working |
 | Booking add / list / view | ✅ Working |
 | Event details rendering | ✅ Fixed |
+| Password reset email | ⚠️ Requires SMTP config in `.env` |
 | Plugin compatibility (FlashWrapper, shortcodes) | ✅ Addressed |
 
 ---
