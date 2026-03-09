@@ -349,14 +349,16 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 			// Get the location for reference
 			eventlocation=model("location").findOne(where="id = #arguments.event.locationid#");
 			try{
-				sendEmail(
+				var mailArgs = {
 				    to="#arguments.event.contactname# <#arguments.event.contactemail#>",
 				    bcc=iif(application.rbs.setting.bccAllEmail, '"#application.rbs.setting.bccAllEmailTo#"', ''),
 				    from="#application.rbs.setting.sitetitle# <#application.rbs.setting.siteEmailAddress#>",
 				    template="/email/bookingNotify",
 				    subject="Room Booking Notification (#event.status#)",
 				    event=arguments.event
-				);
+				};
+				structAppend(mailArgs, getMailDeliverySettings(), true);
+				sendEmail(argumentCollection=mailArgs);
 			} catch(any mailError){
 				writeLog(file="application", type="error", text="[BOOKING_NOTIFY] Failed to send email for event ##arguments.event.key()##: ##mailError.message##");
 			}

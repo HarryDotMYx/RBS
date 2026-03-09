@@ -56100,7 +56100,8 @@ $(document).ready(function () {
 	// Date Pickers-----------------------
 	$('#event-start, #event-end').datetimepicker({
 		showTodayButton: true,
-		stepping: 5
+		stepping: 5,
+		format: 'MM/DD/YYYY hh:mm A'
 	});
 
 	// Link pickers: NB, using dp.hide not dp.change otherwise you can't select a start date without setting end date first

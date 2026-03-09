@@ -180,6 +180,7 @@ docker exec -it roombooking-a-db mariadb \
 | App errors after editing code | Hit the reload URL or restart the container |
 | Database connection error | Ensure the `db` container is also running |
 | Auto-install fails with `AUTO_INSTALL requires ADMIN_EMAIL` | Set `ADMIN_EMAIL` in `.env`, then restart `appv3` |
+| Password reset throws `no SMTP Server defined` | Set SMTP vars in `.env` (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_TLS`, `SMTP_SSL`) and restart `appv3` |
 | Need initial admin password | Check `docker-compose logs appv3` for `RBS_AUTO_INSTALL_ADMIN ...` entry |
 | Code changes not taking effect | Lucee cache — hit the reload URL |
 
@@ -195,7 +196,7 @@ Configured at runtime from environment variables in `Application.cfc`:
 | `app` | Compatibility alias for Wheels tooling |
 
 Key env vars:
-`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_ROOT_PASSWORD`, `AUTO_INSTALL`, `ADMIN_EMAIL`
+`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_ROOT_PASSWORD`, `AUTO_INSTALL`, `ADMIN_EMAIL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_TLS`, `SMTP_SSL`
 
 ---
 

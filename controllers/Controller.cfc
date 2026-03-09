@@ -364,5 +364,76 @@ component extends="Wheels" hint="Global Controller"
 		return {};
 	}
 
+	/**
+	*  @hint Return cfmail-compatible SMTP settings from runtime env variables.
+	*/
+	public struct function getMailDeliverySettings() {
+		var mailSettings = {};
+		var smtpHost = _getRuntimeEnvValue("SMTP_HOST", "");
+		var smtpPort = _getRuntimeEnvValue("SMTP_PORT", "");
+		var smtpUsername = _getRuntimeEnvValue("SMTP_USERNAME", "");
+		var smtpPassword = _getRuntimeEnvValue("SMTP_PASSWORD", "");
+		var smtpTls = _getRuntimeEnvValue("SMTP_TLS", "");
+		var smtpSsl = _getRuntimeEnvValue("SMTP_SSL", "");
+
+		if (!len(smtpHost)) {
+			return mailSettings;
+		}
+
+		mailSettings.server = smtpHost;
+
+		if (len(smtpPort) && isNumeric(smtpPort)) {
+			mailSettings.port = val(smtpPort);
+		}
+		if (len(smtpUsername)) {
+			mailSettings.username = smtpUsername;
+		}
+		if (len(smtpPassword)) {
+			mailSettings.password = smtpPassword;
+		}
+		if (len(smtpTls)) {
+			mailSettings.useTLS = _toBooleanEnvValue(smtpTls);
+		}
+		if (len(smtpSsl)) {
+			mailSettings.useSSL = _toBooleanEnvValue(smtpSsl);
+		}
+
+		return mailSettings;
+	}
+
+	/**
+	*  @hint Read runtime env values from OS env first, then `.env` values loaded in `Application.cfc`.
+	*/
+	private string function _getRuntimeEnvValue(required string key, string defaultValue="") {
+		try {
+			local.systemValue = createObject("java", "java.lang.System").getenv(arguments.key);
+			if (!isNull(local.systemValue) && len(trim(local.systemValue))) {
+				return trim(local.systemValue);
+			}
+		} catch(any e) {
+			// Ignore and fallback.
+		}
+
+		if (
+			structKeyExists(application, "env")
+			&& structKeyExists(application.env, arguments.key)
+			&& len(trim(application.env[arguments.key] & ""))
+		) {
+			return trim(application.env[arguments.key] & "");
+		}
+
+		return arguments.defaultValue;
+	}
+
+	/**
+	*  @hint Parse an env value into boolean.
+	*/
+	private boolean function _toBooleanEnvValue(required any value) {
+		if (isBoolean(arguments.value)) {
+			return arguments.value;
+		}
+		return listFindNoCase("1,true,yes,on", trim(arguments.value & "")) GT 0;
+	}
+
 
 }

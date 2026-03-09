@@ -73,15 +73,15 @@
 	restrictResources(false);
 	// Override default Layouts if appropriate
 	checkLayouts();
-	// Force a stable datetime format so prefilled values (e.g. 10 Mar 2026 04:00) parse correctly
+	// Keep picker format aligned with server prefill to avoid ambiguous date parsing
 	(function syncDatePickerFormat(){
 		var startPicker = $("#event-start").data("DateTimePicker"),
 			endPicker = $("#event-end").data("DateTimePicker");
 		if(startPicker){
-			startPicker.format("DD MMM YYYY HH:mm");
+			startPicker.format("MM/DD/YYYY hh:mm A");
 		}
 		if(endPicker){
-			endPicker.format("DD MMM YYYY HH:mm");
+			endPicker.format("MM/DD/YYYY hh:mm A");
 		}
 	})();
 	// If date comes from calendar click (?d=YYYY-MM-DD), force-correct the parsed year/date in picker

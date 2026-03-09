@@ -124,6 +124,9 @@ component output="false" {
 
 	function onApplicationStart() {
 		wirebox = new wirebox.system.ioc.Injector("wheels.Wirebox");
+		if (structKeyExists(this, "env") && isStruct(this.env)) {
+			application.env = duplicate(this.env);
+		}
 
 		/* wheels/global object */
 		application.wo = wirebox.getInstance("global");

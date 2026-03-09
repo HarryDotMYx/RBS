@@ -25,6 +25,7 @@ Required values:
 - `ADMIN_EMAIL` (mandatory for auto-install)
 - `DB_PASSWORD`
 - `DB_ROOT_PASSWORD`
+- `SMTP_HOST` (required if you want password reset / email notifications to work)
 
 ### Step 3: Run Docker Compose
 Execute:
@@ -76,6 +77,10 @@ If you need to restart from a clean database:
 1. Stop stack and remove DB volume: `docker-compose -f docker-compose-v3.yml down -v`
 2. Start again: `docker-compose -f docker-compose-v3.yml up -d`
 3. Read generated admin password from app logs.
+
+### 5. Error: `no SMTP Server defined`
+*   **Cause**: SMTP environment is not configured for the app container.
+*   **Solution**: Set SMTP values in `.env` (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_TLS`, `SMTP_SSL`) and restart `appv3`.
 
 ---
 

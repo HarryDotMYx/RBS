@@ -17,22 +17,37 @@ component extends="Controller" hint=""
  	/**
  	*  @hint Create a pw reset email
  	*/
- 	public void function create() {
+	public void function create() {
+		param name="params.email" default="";
 	 	user = model("user").findOneByEmail(params.email);
 		if ( isObject(user) ) {
 			user.createPasswordResetToken();
-			sendEmail(to=user.email,
-				from="#application.rbs.setting.sitetitle# <#application.rbs.setting.siteemailaddress#>",
-				subject="[#application.rbs.setting.sitetitle#] Password Reset Request",
-				template="/email/passwordReset",
-				user=user);
-			flashInsert(success="We've sent you an email with password reset instructions!");
-			redirectTo(route="login");
+			try {
+				var mailArgs = {
+					to=user.email,
+					from="#application.rbs.setting.sitetitle# <#application.rbs.setting.siteemailaddress#>",
+					subject="[#application.rbs.setting.sitetitle#] Password Reset Request",
+					template="/email/passwordReset",
+					user=user
+				};
+				structAppend(mailArgs, getMailDeliverySettings(), true);
+				sendEmail(argumentCollection=mailArgs);
+				flashInsert(success="We've sent you an email with password reset instructions!");
+				redirectTo(route="login");
+			} catch(any mailError){
+				writeLog(
+					file="application",
+					type="error",
+					text="[PASSWORD_RESET] Failed to send reset email to #user.email#: #mailError.message#"
+				);
+				flashInsert(error="Password reset email could not be sent. SMTP is not configured yet.");
+				redirectTo(action="new");
+			}
 		} else {
 			flashInsert(error="Hmm... we couldn't find an account for that address");
 			redirectTo(action="new");
 		}
- 	}
+	}
 
  	/**
  	*  @hint Update pw form
