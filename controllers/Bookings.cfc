@@ -197,11 +197,22 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	    	 	}
 	    	 	event.emailcontact = 1;
 	    	 }
-    	 // Listen out for event date & location passed in URL via JS
-    	 if(structKeyExists(params, "d")){
-    	 	qDate=createDateTime(listFirst(params.d, '-'),ListGetAt(params.d, 2, '-'),ListGetAt(params.d, 3, '-'),hour(now()),00,00);
-    	 	event.start=dateFormat(qDate, "DD MMM YYYY") & ' ' & timeFormat(qDate, "HH:mm");
-    	 }
+	    	 // Listen out for event date & location passed in URL via JS
+	    	 if(structKeyExists(params, "d")){
+	    	 	var malaysiaNow = createObject("java", "java.time.ZonedDateTime").now(
+	    	 		createObject("java", "java.time.ZoneId").of("Asia/Kuala_Lumpur")
+	    	 	);
+	    	 	qDate=createDateTime(
+	    	 		listFirst(params.d, '-'),
+	    	 		ListGetAt(params.d, 2, '-'),
+	    	 		ListGetAt(params.d, 3, '-'),
+	    	 		malaysiaNow.getHour(),
+	    	 		0,
+	    	 		0
+	    	 	);
+	    	 	// Use picker-native format to avoid ambiguous parsing on browser side.
+	    	 	event.start=dateFormat(qDate, "MM/DD/YYYY") & ' ' & timeFormat(qDate, "hh:mm tt");
+	    	 }
     	 if(structKeyExists(params, "key") AND isNumeric(params.key)){
     	 	event.locationid=params.key;
     	}
