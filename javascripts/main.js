@@ -1,6 +1,7 @@
 /* ================= Room Booking System / https://github.com/neokoenig */
 
 $(document).ready(function () {
+	var lastEventModalTrigger = null;
 
 	tryForCalendar();
 
@@ -86,6 +87,7 @@ $(document).ready(function () {
 		var $modal = $('#eventmodal');
 		var $body = $('#eventmodal-body');
 		if (!$modal.length || !$body.length) return;
+		lastEventModalTrigger = document.activeElement;
 		$body.html('<div class="text-center p-4"><div class="spinner-border" role="status">Loading...</div></div>');
 		$modal.modal('show');
 		$.get(url, function (html) {
@@ -188,9 +190,29 @@ $(document).ready(function () {
 	});
 
 	// Reset modal body when closed
+	$('body').on('hide.bs.modal', '#eventmodal', function () {
+		var modal = this;
+		var active = document.activeElement;
+		if (!active || !modal.contains(active)) return;
+		if (typeof active.blur === 'function') active.blur();
+
+		var restoreTarget = lastEventModalTrigger;
+		if (restoreTarget && document.contains(restoreTarget) && $(restoreTarget).is(':visible')) {
+			if (typeof restoreTarget.focus === 'function') restoreTarget.focus();
+			return;
+		}
+
+		var fallback = document.getElementById('calendar') || document.body;
+		if (fallback && fallback !== document.body && !fallback.hasAttribute('tabindex')) {
+			fallback.setAttribute('tabindex', '-1');
+		}
+		if (fallback && typeof fallback.focus === 'function') fallback.focus();
+	});
+
 	$('body').on('hidden.bs.modal', '#eventmodal', function () {
 		var body = document.getElementById('eventmodal-body');
 		if (body) body.innerHTML = '';
+		lastEventModalTrigger = null;
 	});
 
 	/* End */
