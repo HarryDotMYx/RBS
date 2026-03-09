@@ -7,27 +7,33 @@
 <cfif structKeyExists(application.rbs.templates, "location") AND structKeyExists(application.rbs.templates.location, "output")>
 	 #processShortCodes(application.rbs.templates.location.output)#
 <cfelse>
-	<!--- Default Template--->
-	<cfsavecontent variable="locationTemplate">
 	<div class="row">
 		<div class="col-md-3">
-			<p>[output label="Name" id="name"]</p>
-			<p>[output label="Description" id="description"]</p>
-			<p>[output label="Class" id="class"]</p>
-			<p>[output label="Colour" id="colour"]</p>
+			<cfif len(trim(location.name))>
+				<p><strong>Name:</strong> #h(location.name)#</p>
+			</cfif>
+			<cfif len(trim(location.description))>
+				<p><strong>Description:</strong> #h(location.description)#</p>
+			</cfif>
+			<cfif len(trim(location.class))>
+				<p><strong>Class:</strong> #h(location.class)#</p>
+			</cfif>
+			<cfif len(trim(location.colour))>
+				<p><strong>Colour:</strong> #h(location.colour)#</p>
+			</cfif>
 		</div>
 		<div class="col-md-3">
 			<cfif customfields.recordcount>
 				<cfoutput>
 					<cfloop query="customfields">
-						<p>[output label="#name#" id="#id#"]</p>
+						<cfif len(trim(value))>
+							<p><strong>#h(name)#:</strong> #h(value)#</p>
+						</cfif>
 					</cfloop>
 				</cfoutput>
 			</cfif>
 		</div>
 	</div>
-	</cfsavecontent>
-	#processShortCodes(locationTemplate)#
 </cfif>
 
 
