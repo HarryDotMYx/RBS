@@ -27,7 +27,6 @@
 					  </button>
 					  <ul class="dropdown-menu" role="menu">
 					  	<li>#linkTo(text="<span class='glyphicon glyphicon-edit'></span> Edit",   controller="users",  action="edit", key=id, class="", encode=false)#</li>
-			  		<cfif !len(deletedAt)>
 					  <cfif role NEQ "admin" AND userisInRole("admin")>
 					  	<li>#linkTo(text="<span class='glyphicon glyphicon-user'></span> Assume",  controller="users",   action="assumeUser", key=id,  class="", encode=false)# </li>
 					  </cfif>
@@ -40,10 +39,7 @@
 				  		<li>#linkTo(text="<span class='glyphicon glyphicon-th'></span> Activity", controller="logfiles",  action="index", params="type=&userid=#id#&rows=1000", encode=false)#</li>
 					  </cfif>
 					    <li class="divider"></li>
-					    <li>#linkTo(text="<span class='glyphicon glyphicon-trash'></span> Disable",  controller="users",  action="delete", key=id, class="", confirm="Are you sure you want to disable this account?", encode=false)#</li>
-					 <cfelse>
- 						<li>#linkTo(text="<span class='glyphicon glyphicon-trash'></span> Recover", controller="users",   action="recover", key=id, class="", confirm="Are you sure you want to recover this account?", encode=false)#</li>
-					    </cfif>
+					    <li>#linkTo(text="<span class='glyphicon glyphicon-trash'></span> Delete Permanently",  controller="users",  action="delete", key=id, class="", confirm="Are you sure? This will permanently delete this account and cannot be undone.", encode=false)#</li>
 					  </ul>
 					</div>
 

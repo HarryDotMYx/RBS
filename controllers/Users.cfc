@@ -160,39 +160,46 @@ component extends="Controller" hint="Main User Controller"
 			redirectTo( controller="users", action="index", success="Not updated in demo mode");
 		}
 	}
-	/**
-	*  @hint Soft Delete an Account
-	*/
-	public void function delete() {
-	 	if(!application.rbs.setting.isdemomode){
-		 if(structkeyexists(params, "key")){
-	    	user = model("user").findOne(where="id = #params.key#");
-			if ( user.delete() )  {
-				redirectTo( controller="users", action="index", success="user successfully deleted");
-			}
-	        else {
-				redirectTo(controller="users", action="index", error="There were problems deleting that user");
+		/**
+		*  @hint Hard Delete (Purge) an Account
+		*/
+		public void function delete() {
+			if(!application.rbs.setting.isdemomode){
+				if(structKeyExists(params, "key") && isNumeric(params.key)){
+					user = model("user").findOne(where="id = #val(params.key)#", includeSoftDeletes=true);
+					if(!isObject(user)){
+						redirectTo(controller="users", action="index", error="That user no longer exists.");
+						return;
+					}
+
+					// Defensive guardrails for direct-URL calls.
+					if(structKeyExists(user, "role") && lCase(user.role & "") EQ "admin"){
+						redirectTo(controller="users", action="index", error="Admin accounts cannot be purged.");
+						return;
+					}
+					if(structKeyExists(session, "currentUser") && structKeyExists(session.currentUser, "id") && val(session.currentUser.id) EQ val(params.key)){
+						redirectTo(controller="users", action="index", error="You cannot purge your own account.");
+						return;
+					}
+
+					queryExecute(
+						"DELETE FROM users WHERE id = ?",
+						[val(params.key)],
+						{datasource=application.wheels.datasourcename}
+					);
+					redirectTo(controller="users", action="index", success="User permanently deleted.");
+					return;
+				}
+			} else {
+				redirectTo(controller="users", action="index", success="Not updated in demo mode");
 			}
 		}
-		} else {
-			redirectTo( controller="users", action="index", success="Not updated in demo mode");
+		/**
+		*  @hint Recover a deleted Account
+		*/
+		public void function recover() {
+			redirectTo(controller="users", action="index", error="Recover is disabled. Accounts are permanently deleted.");
 		}
-	}
-	/**
-	*  @hint Recover a deleted Account
-	*/
-	public void function recover() {
-		if(structkeyexists(params, "key")){
-	    	user = model("user").findOne(where="id = #params.key#", includeSoftDeletes=true);
-			user.deletedAt="";
-			if ( user.save() )  {
-				redirectTo( controller="users", action="index", success="user successfully recovered");
-			}
-	        else {
-				redirectTo(controller="users", action="index", error="There were problems recovering that user");
-			}
-		}
-	}
 
 /******************** Ajax/Remote/Misc*************/
 	/**

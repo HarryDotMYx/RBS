@@ -257,6 +257,7 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 		locations=model("location").findAll(order="building,name");
 		resources=model("resource").findAll(order="type,name");
 	 	event=model("event").findOne(where="id = #params.key#", include="eventresources");
+		_normalizeEventDateFieldsForPicker(event);
     	customfields=getCustomFields(objectname="event", key=event.key());
         renderView(action="add");
 	}
@@ -271,6 +272,7 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 		locations=model("location").findAll(order="building,name");
 		resources=model("resource").findAll(order="type,name");
 		event=model("event").findOne(where="id = #val(params.key)#", include="eventresources");
+		_normalizeEventDateFieldsForPicker(event);
 		customfields=getCustomFields(objectname=request.modeltype, key=params.key);
 	}
 
@@ -516,6 +518,38 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 			return true;
 		} catch(any e) {
 			return false;
+		}
+	}
+
+	/**
+	*  @hint Ensure event date values match UI picker format to avoid browser-side misparsing (e.g. year 0026).
+	*/
+	private void function _normalizeEventDateFieldsForPicker(required any eventRecord) {
+		if (!isObject(arguments.eventRecord)) {
+			return;
+		}
+		if (structKeyExists(arguments.eventRecord, "start")) {
+			arguments.eventRecord.start = _toPickerDateTime(arguments.eventRecord.start);
+		}
+		if (structKeyExists(arguments.eventRecord, "end")) {
+			arguments.eventRecord.end = _toPickerDateTime(arguments.eventRecord.end);
+		}
+	}
+
+	/**
+	*  @hint Convert a datetime-ish value into picker format MM/DD/YYYY hh:mm AM/PM.
+	*/
+	private string function _toPickerDateTime(required any value) {
+		var parsedValue = "";
+		if (isDate(arguments.value)) {
+			parsedValue = parseDateTime(arguments.value);
+			return dateFormat(parsedValue, "MM/DD/YYYY") & " " & timeFormat(parsedValue, "hh:mm tt");
+		}
+		try {
+			parsedValue = parseDateTime(arguments.value);
+			return dateFormat(parsedValue, "MM/DD/YYYY") & " " & timeFormat(parsedValue, "hh:mm tt");
+		} catch(any e) {
+			return arguments.value & "";
 		}
 	}
 
