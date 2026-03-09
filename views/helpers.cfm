@@ -169,6 +169,65 @@
     }
 
     /**
+    * @hint Render styled flash alerts with Bootstrap semantic variants
+    */
+    public string function renderFlashAlerts() {
+        var result = "";
+        savecontent variable="result" {
+            writeOutput(
+                flash(
+                    key="success",
+                    prepend='<div class="alert alert-success alert-dismissable" role="alert"><a class="close" data-dismiss="alert">&times;</a><strong></strong> ',
+                    append="</div>"
+                )
+            );
+            writeOutput(
+                flash(
+                    key="info",
+                    prepend='<div class="alert alert-info alert-dismissable" role="alert"><a class="close" data-dismiss="alert">&times;</a><strong></strong> ',
+                    append="</div>"
+                )
+            );
+            writeOutput(
+                flash(
+                    key="warning",
+                    prepend='<div class="alert alert-warning alert-dismissable" role="alert"><a class="close" data-dismiss="alert">&times;</a><strong></strong> ',
+                    append="</div>"
+                )
+            );
+            writeOutput(
+                flash(
+                    key="alert",
+                    prepend='<div class="alert alert-warning alert-dismissable" role="alert"><a class="close" data-dismiss="alert">&times;</a><strong></strong> ',
+                    append="</div>"
+                )
+            );
+            writeOutput(
+                flash(
+                    key="error",
+                    prepend='<div class="alert alert-danger alert-dismissable" role="alert"><a class="close" data-dismiss="alert">&times;</a><strong></strong> ',
+                    append="</div>"
+                )
+            );
+            writeOutput(
+                flash(
+                    key="danger",
+                    prepend='<div class="alert alert-danger alert-dismissable" role="alert"><a class="close" data-dismiss="alert">&times;</a><strong></strong> ',
+                    append="</div>"
+                )
+            );
+            writeOutput(
+                flash(
+                    key="message",
+                    prepend='<div class="alert alert-info alert-dismissable" role="alert"><a class="close" data-dismiss="alert">&times;</a><strong></strong> ',
+                    append="</div>"
+                )
+            );
+        }
+        return result;
+    }
+
+    /**
     *  @hint Takes a string like Building One and converts to building-one
     */
     public string function toTagSafe(string) {
