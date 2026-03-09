@@ -35,20 +35,22 @@ component extends="Model" hint="User Model"
 	*  @hint Secure Password
 	*/
 	public void function securePassword() {
-	  	var	p={};
-		// Only hash if password change is intentional
-		if (this.isPasswordChanging()) {
-	     	p.salt.uuid=createUUID();
-	     	p.salt.encrypted=encrypt(p.salt.uuid, getAuthKey(), 'CFMX_COMPAT');
-	     	p.pw.hashed=hash(this.password & p.salt.uuid, 'SHA-512');
-	     	this.salt= p.salt.encrypted;
-	     	this.password=p.pw.hashed;
+	  	var p = {};
+		var hasPassword = structKeyExists(this, "password");
+		var passwordValue = hasPassword ? trim(toString(this.password)) : "";
+		// Only hash when a non-empty password is explicitly supplied.
+		if (len(passwordValue)) {
+	     	p.salt.uuid = createUUID();
+	     	p.salt.encrypted = encrypt(p.salt.uuid, getAuthKey(), 'CFMX_COMPAT');
+	     	p.pw.hashed = hash(passwordValue & p.salt.uuid, 'SHA-512');
+	     	this.salt = p.salt.encrypted;
+	     	this.password = p.pw.hashed;
 	     }
 	}
 
 	public boolean function isPasswordChanging() {
 		var hasConfirm = structKeyExists(this, "passwordConfirmation");
-		var confirmLen = hasConfirm ? len(trim(this.passwordConfirmation)) : 0;
+		var confirmLen = hasConfirm ? len(trim(toString(this.passwordConfirmation))) : 0;
 		return (hasConfirm AND confirmLen GT 0);
 	}
 
@@ -58,7 +60,9 @@ component extends="Model" hint="User Model"
 	public void function validatePasswordMatch() {
 		// Only run validation if we are intending to change the password
 		if (isPasswordChanging()) {
-			if (password NEQ passwordConfirmation) {
+			var passwordValue = structKeyExists(this, "password") ? trim(toString(this.password)) : "";
+			var confirmationValue = structKeyExists(this, "passwordConfirmation") ? trim(toString(this.passwordConfirmation)) : "";
+			if (passwordValue NEQ confirmationValue) {
 				addError(property="passwordConfirmation", message="Your passwords must match!");
 			}
 		}
