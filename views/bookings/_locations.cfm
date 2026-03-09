@@ -11,9 +11,14 @@
 <cfif application.rbs.setting.showlocationcolours>
 <style>
 <cfloop query="locations">
-	<cfif len(colour)>
-		.#class# { background-color: #colour# !important; border-color: #colour# !important; color: ##ffffff !important; }
-		.pending.#class# { color: #colour# !important; }
+	<cfset safeCssClass = reReplaceNoCase(class & "", "[^a-z0-9_-]", "", "all")>
+	<cfset safeColour = trim(colour & "")>
+	<cfif reFindNoCase("^##?[0-9a-f]{3}([0-9a-f]{3})?$", safeColour)>
+		<cfif left(safeColour, 1) NEQ "##"><cfset safeColour = "##" & safeColour></cfif>
+	</cfif>
+	<cfif len(safeCssClass) AND reFindNoCase("^##[0-9a-f]{3}([0-9a-f]{3})?$", safeColour)>
+		.#safeCssClass# { background-color: #lCase(safeColour)# !important; border-color: #lCase(safeColour)# !important; color: ##ffffff !important; }
+		.pending.#safeCssClass# { color: #lCase(safeColour)# !important; }
 	</cfif>
 </cfloop>
 /* Flex layout for location buttons to prevent overlap */
@@ -37,13 +42,16 @@
 	#linkTo(action="index",  class="btn btn-primary btn-sm location-filter", data_id="all", text="All")#
 	<cfif buildings.recordcount>
 		<cfloop query="buildings">
-			#linkTo(controller="bookings", action="building", key=toTagSafe(building), class="#iif(params.key EQ toTagSafe(building), '"active"', '')# btn btn-sm btn-primary location-filter", data_id="#toTagSafe(building)#", text="#building#")#
+			<cfset safeBuildingTag = reReplaceNoCase(toTagSafe(building), "[^a-z0-9_-]", "", "all")>
+			#linkTo(controller="bookings", action="building", key=safeBuildingTag, class="#iif(params.key EQ safeBuildingTag, '"active"', '')# btn btn-sm btn-primary location-filter", data_id="#safeBuildingTag#", text="#h(building)#", encode=false)#
 		</cfloop>
 	</cfif>
 	</div>
 	<div class="location-row">
 		<cfloop query="locations">
-			#linkTo(controller="bookings", action="location", key=id, class="all #toTagSafe(building)# btn btn-sm location-filter #class# location#id#", text="<b>#name#</b><br /><small>#description#</small>", encode=false)#
+			<cfset safeBuildingClass = reReplaceNoCase(toTagSafe(building), "[^a-z0-9_-]", "", "all")>
+			<cfset safeLocationClass = reReplaceNoCase(class & "", "[^a-z0-9_-]", "", "all")>
+			#linkTo(controller="bookings", action="location", key=id, class="all #safeBuildingClass# btn btn-sm location-filter #safeLocationClass# location#id#", text="<b>#h(name)#</b><br /><small>#h(description)#</small>", encode=false)#
 		</cfloop>
 	</div>
 </div>

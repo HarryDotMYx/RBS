@@ -41,6 +41,7 @@ services:
       DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-change-me-root-password}
       AUTO_INSTALL: ${AUTO_INSTALL:-true}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      RBS_RELOAD_PASSWORD: ${RBS_RELOAD_PASSWORD:-}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USERNAME: ${SMTP_USERNAME:-}

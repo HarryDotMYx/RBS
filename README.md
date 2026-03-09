@@ -30,6 +30,12 @@
 | Calendar events feed | ✅ Working |
 | Booking add / list / view | ✅ Working |
 | Event details rendering | ✅ Fixed |
+| Security: login brute-force lockout | ✅ Added (5 failures => 10-minute lock) |
+| Security: password reset token storage | ✅ Hardened (DB stores token hash, not raw token) |
+| Security: API URL token auth (`?token=`) | ✅ Disabled by default (header auth only; opt-in fallback) |
+| Security: dev/prod session isolation | ✅ Hardened (`RBS_INSTANCE_NAME` / env-aware app namespace) |
+| Security: baseline response headers | ✅ Added (`X-Frame-Options`, `CSP`, `Referrer-Policy`, etc.) |
+| Security: flash/log output XSS hardening | ✅ Added (escaped dynamic event titles and log message rendering) |
 | Password reset email | ⚠️ Requires SMTP config in `.env` |
 | Plugin compatibility (FlashWrapper, shortcodes) | ✅ Addressed |
 

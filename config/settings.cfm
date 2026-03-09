@@ -9,10 +9,19 @@ set(dataSourceName="roombooking");
 set(URLRewriting="off");
 
 // Whether to allow ?reload=production etc via URL. I tend to keep this on.
-set(allowedEnvironmentSwitchThroughURL=true);
+set(allowedEnvironmentSwitchThroughURL=false);
 
-// Reload Password: you'll definitely want to change this to something unique.
-set(reloadPassword="roombooking");
+// Reload password must be provided via env var RBS_RELOAD_PASSWORD.
+reloadPasswordFromEnv = "";
+try {
+	reloadPasswordFromEnv = createObject("java", "java.lang.System").getenv("RBS_RELOAD_PASSWORD");
+} catch(any e) {
+	reloadPasswordFromEnv = "";
+}
+if (isNull(reloadPasswordFromEnv)) {
+	reloadPasswordFromEnv = "";
+}
+set(reloadPassword=trim(reloadPasswordFromEnv & ""));
 
 // Environment-agnostic settings
 set(assetQueryString=true);

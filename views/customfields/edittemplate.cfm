@@ -3,7 +3,7 @@
 <cfparam name="template">
 <cfoutput>
 #panel(title="Edit #template.parentmodel# Template")#
-	#startFormTag(action="updatetemplate",  id="templateForm", key=template.parentmodel, params="type=#params.type#")#
+	#startFormTag(action="updatetemplate",  id="templateForm", key=template.parentmodel, params="type=#urlEncodedFormat(params.type & '')#")#
 	#includePartial("templateform")#
 	#submitTag(id="templateSubmit", value="Update Template")#
 	#endFormTag()#

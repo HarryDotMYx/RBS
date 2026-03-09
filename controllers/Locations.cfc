@@ -9,6 +9,8 @@ component extends="Controller" hint="Locations Controller"
 		// super.config() disabled during migration;
 // Permission filters
 		// legacy super.init removed for CFWheels2+
+		protectsFromForgery(with="exception");
+		filters(through="requirePostRequest", only="create,update,delete");
 
 		// Permissions
 		filters(through="f_checkLocationsAdmin");
@@ -34,7 +36,7 @@ component extends="Controller" hint="Locations Controller"
 	*  @hint
 	*/
 	public void function view() {
-		location=model("location").findOne(where="id = #params.key#");
+		location=model("location").findOne(where="id = #val(params.key)#");
 		if (!isObject(location)) {
 			redirectTo(action="index", error="Sorry, that location can't be found");
 			return;
@@ -54,6 +56,9 @@ component extends="Controller" hint="Locations Controller"
 	*  @hint Create Location
 	*/
 	public void function create() {
+		if(!requirePostRequest()){
+			return;
+		}
 		if(structkeyexists(params, "location")){
 	    	location = model("location").new(params.location);
 			if ( location.save() ) {
@@ -69,7 +74,7 @@ component extends="Controller" hint="Locations Controller"
 	*  @hint Edit  Location
 	*/
 	public void function edit() {
-		location=model("location").findOne(where="id = #params.key#");
+		location=model("location").findOne(where="id = #val(params.key)#");
 		request.modeltype="location";
 		customfields=getCustomFields(objectname=request.modeltype, key=params.key);
 
@@ -79,8 +84,11 @@ component extends="Controller" hint="Locations Controller"
 	*  @hint Update Location
 	*/
 	public void function update() {
+		if(!requirePostRequest()){
+			return;
+		}
 		if(structkeyexists(params, "location")){
-			location = model("location").findOne(where="id = #params.key#");
+			location = model("location").findOne(where="id = #val(params.key)#");
 			location.update(params.location);
 			if ( location.save() )  {
 				if(structkeyexists(params, "customfields") AND isStruct(params.customfields)){
@@ -98,10 +106,13 @@ component extends="Controller" hint="Locations Controller"
 	*  @hint Delete Location
 	*/
 	public void function delete() {
+		if(!requirePostRequest()){
+			return;
+		}
 		checkLocation=model("location").findAll();
 		if(checkLocation.recordcount GT 1){
-		 if(structkeyexists(params, "key")){
-		    	location = model("location").findOne(where="id = #params.key#");
+			 if(structkeyexists(params, "key")){
+			    	location = model("location").findOne(where="id = #val(params.key)#");
 				if ( location.delete() )  {
 					redirectTo(action="index", success="Location successfully deleted");
 				}

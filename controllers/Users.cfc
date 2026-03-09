@@ -9,7 +9,9 @@ component extends="Controller" hint="Main User Controller"
 		// super.config() disabled during migration;
 // Permission filters
 		// legacy super.init removed for CFWheels2+
+		protectsFromForgery(with="exception");
 		filters(through="_checkLoggedIn");
+		filters(through="requirePostRequest", only="create,update,delete,assumeUser,generateAPIKey,updateaccount,updatepassword");
 		filters(through="checkPermissionAndRedirect", permission="accessUsers", except="myaccount,updateaccount,updatepassword");
 		filters(through="checkPermissionAndRedirect", permission="updateOwnAccount", only="myaccount,updateaccount,updatepassword");
 		filters(through="denyInDemoMode", only="create,update,updateaccount,updatepassword,assumeuser,generateAPIKey");
@@ -53,6 +55,9 @@ component extends="Controller" hint="Main User Controller"
 	*  @hint Main Account Update
 	*/
 	public void function updateaccount() {
+		if(!requirePostRequest()){
+			return;
+		}
 		if(structKeyExists(params, "password")){
 			structDelete(params, "password");
 			structDelete(params, "passwordConfirmation");
@@ -78,6 +83,9 @@ component extends="Controller" hint="Main User Controller"
 	*  @hint Seperate PW change update
 	*/
 	public void function updatepassword() {
+		if(!requirePostRequest()){
+			return;
+		}
 		if(structKeyExists(params, "password") AND structKeyExists(params, "passwordConfirmation")){
 			user.update(
 				password=params.password,
@@ -99,8 +107,15 @@ component extends="Controller" hint="Main User Controller"
 	*  @hint Login as targeted user
 	*/
 	public void function assumeUser() {
+		if(!requirePostRequest()){
+			return;
+		}
+		if(!userIsInRole("admin")){
+			redirectTo(route="denied", error="Only administrators can assume another user.");
+			return;
+		}
 		if(!application.rbs.setting.isdemomode){
-				user=model("user").findOne(where="id = #params.key#");
+				user=model("user").findOne(where="id = #val(params.key)#");
 				_createUserInScope(user);
 		}
 		else {
@@ -124,12 +139,15 @@ component extends="Controller" hint="Main User Controller"
 	*  @hint Edit User
 	*/
 	public void function edit() {
-		user=model("user").findOne(where="id = #params.key#");
+		user=model("user").findOne(where="id = #val(params.key)#");
 	}
 	/**
 	*  @hint Create Account
 	*/
 	public void function create() {
+		if(!requirePostRequest()){
+			return;
+		}
 		if(structkeyexists(params, "user")){
 	    	user = model("user").new(params.user);
 			if ( user.save() ) {
@@ -144,9 +162,12 @@ component extends="Controller" hint="Main User Controller"
 	*  @hint
 	*/
 	public void function update() {
+		if(!requirePostRequest()){
+			return;
+		}
 		if(!application.rbs.setting.isdemomode){
 			if(structkeyexists(params, "user")){
-				user = model("user").findOne(where="id = #params.key#");
+				user = model("user").findOne(where="id = #val(params.key)#");
 				user.update(params.user);
 				if ( user.save() )  {
 					redirectTo( controller="users", action="index", success="User account successfully updated");
@@ -164,6 +185,9 @@ component extends="Controller" hint="Main User Controller"
 		*  @hint Hard Delete (Purge) an Account
 		*/
 		public void function delete() {
+			if(!requirePostRequest()){
+				return;
+			}
 			if(!application.rbs.setting.isdemomode){
 				if(structKeyExists(params, "key") && isNumeric(params.key)){
 					user = model("user").findOne(where="id = #val(params.key)#", includeSoftDeletes=true);
@@ -206,6 +230,13 @@ component extends="Controller" hint="Main User Controller"
 	*  @hint Generates An API Key for a user account
 	*/
 	public void function generateAPIKey() {
+			if(!requirePostRequest()){
+				return;
+			}
+			if(!userIsInRole("admin")){
+				redirectTo(route="denied", error="Only administrators can generate API keys for users.");
+				return;
+			}
 			user=model("user").findOneByID(params.key);
 			if(isObject(user)){
 				user.apitoken=_generateApiKey();

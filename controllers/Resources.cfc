@@ -9,6 +9,8 @@ component extends="Controller" hint="Resources Controller"
 		// super.config() disabled during migration;
 // Permission filters
 		// legacy super.init removed for CFWheels2+
+		protectsFromForgery(with="exception");
+		filters(through="requirePostRequest", only="create,update,delete");
 
 		// Permissions
 		filters(through="checkPermissionAndRedirect", permission="accessresources");
@@ -39,6 +41,9 @@ component extends="Controller" hint="Resources Controller"
 	*  @hint Create Resource
 	*/
 	public void function create() {
+		if(!requirePostRequest()){
+			return;
+		}
 		if(structkeyexists(params, "resource")){
 	    	resource = model("resource").new(params.resource);
 			if ( resource.save() ) {
@@ -54,15 +59,18 @@ component extends="Controller" hint="Resources Controller"
 	*  @hint Edit Resource
 	*/
 	public void function edit() {
-		resource=model("resource").findOne(where="id = #params.key#");
+		resource=model("resource").findOne(where="id = #val(params.key)#");
 	}
 
 	/**
 	*  @hint Update Resource
 	*/
 	public void function update() {
+		if(!requirePostRequest()){
+			return;
+		}
 		if(structkeyexists(params, "resource")){
-	    	resource = model("resource").findOne(where="id = #params.key#");
+	    	resource = model("resource").findOne(where="id = #val(params.key)#");
 			resource.update(params.resource);
 			if ( resource.save() )  {
 				redirectTo(action="index", success="resource successfully updated");
@@ -77,7 +85,10 @@ component extends="Controller" hint="Resources Controller"
 	*  @hint Delete Resource
 	*/
 	public void function delete() {
-    	resource = model("resource").findOne(where="id = #params.key#");
+		if(!requirePostRequest()){
+			return;
+		}
+	    	resource = model("resource").findOne(where="id = #val(params.key)#");
 		if ( resource.delete() )  {
 			redirectTo(action="index", success="resource successfully deleted");
 		}
@@ -104,18 +115,25 @@ component extends="Controller" hint="Resources Controller"
 		param name="params.eventid" default="" type="numeric";
 		param name="params.start" default="" type="string";
 		param name="params.end" default="" type="string";
-		if(!isDate(params.end)){
-			params.end=dateAdd("h", 1, params.start);
+		if(!isDate(params.start) OR val(params.id) LTE 0){
+			renderText(0);
+			return;
 		}
+		var safeResourceId = val(params.id);
+		var safeEventId = val(params.eventid);
+		var safeStart = parseDateTime(params.start);
+		var safeEnd = isDate(params.end) ? parseDateTime(params.end) : dateAdd("h", 1, safeStart);
+		var safeStartLiteral = createODBCDateTime(safeStart);
+		var safeEndLiteral = createODBCDateTime(safeEnd);
 		// Check for any events which may have booked the unique resource in the given timeframe, excluding the event itself
 		checkEvent=model("event").findAll(
-			where="start <= '#params.start#' AND end >= '#params.end#' AND id != #params.eventid# AND resourceid = #params.id#",
+			where="start <= #safeStartLiteral# AND end >= #safeEndLiteral# AND id != #safeEventId# AND resourceid = #safeResourceId#",
 			include="eventresources");
 		/* Check for events with an All Day flag which might have incorrect timings set; this shouldn't affect events which span multiple days, as the above check (should) pick them up;*/
-			tempstart=dateFormat(params.start, "yyyy-mm-dd") & ' ' & timeFormat(params.start, "00:00");
-			tempend=dateFormat(params.end, "yyyy-mm-dd") & ' ' & timeFormat(params.end, "23:59");
+			tempstart=dateFormat(safeStart, "yyyy-mm-dd") & ' ' & timeFormat(safeStart, "00:00");
+			tempend=dateFormat(safeEnd, "yyyy-mm-dd") & ' ' & timeFormat(safeEnd, "23:59");
 		checkEvent2=model("event").findAll(
-			where="start >= '#tempstart#' AND end <= '#tempend#' AND id != #params.eventid# AND allday=1 AND resourceid=#params.id#",
+			where="start >= '#tempstart#' AND end <= '#tempend#' AND id != #safeEventId# AND allday=1 AND resourceid=#safeResourceId#",
 			include="eventresources");
 
 		if(checkEvent.recordCount OR checkEvent2.recordcount){

@@ -8,6 +8,8 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 		
 		// super.config() disabled during migration;
 // legacy super.init removed for CFWheels2+
+		protectsFromForgery(with="exception");
+		filters(through="requirePostRequest", only="create,update,delete,approve,deny");
 
 		// Additional Permissions
 		filters(through="checkPermissionAndRedirect", permission="accesscalendar");
@@ -37,7 +39,7 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	*  @hint Static display of a single event, mainly used in RSS permalinks etc
 	*/
 	public void function view() {
-		event=model("location").findAll(where="events.id = #params.key#", include="events(eventresources)");
+		event=model("location").findAll(where="events.id = #val(params.key)#", include="events(eventresources)");
 		customfields=getCustomFields(objectname=request.modeltype, key=event.id);
 	}
 
@@ -222,20 +224,26 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	*  @hint Approve a listing
 	*/
 	public void function approve() {
-		event=model("event").findOne(where="id = #params.key#");
+		if(!requirePostRequest()){
+			return;
+		}
+		event=model("event").findOne(where="id = #val(params.key)#");
 		if(isObject(event)){
 			event.status="approved";
 			event.save();
 			notifyContact(event);
 		}
-		redirectTo(success="#event.title# was approved", back=true);
+		redirectTo(success="#encodeForHTML(event.title & "")# was approved", back=true);
 	}
 
 	/**
 	*  @hint Deny a listing (can also delete)
 	*/
 	public void function deny() {
-		event=model("event").findOne(where="id = #params.key#");
+		if(!requirePostRequest()){
+			return;
+		}
+		event=model("event").findOne(where="id = #val(params.key)#");
 		if(isObject(event)){
 			event.status="denied";
 			event.save();
@@ -243,9 +251,9 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 			notifyContact(event);
 			if(structKeyExists(params, "delete") AND params.delete){
 				event.delete();
-				redirectTo(success="#event.title# was denied & deleted", back=true);
+				redirectTo(success="#encodeForHTML(event.title & "")# was denied & deleted", back=true);
 			} else {
-				redirectTo(success="#event.title# was denied", back=true);
+				redirectTo(success="#encodeForHTML(event.title & "")# was denied", back=true);
 			}
 		}
 	}
@@ -256,7 +264,7 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	public void function clone() {
 		locations=model("location").findAll(order="building,name");
 		resources=model("resource").findAll(order="type,name");
-	 	event=model("event").findOne(where="id = #params.key#", include="eventresources");
+	 	event=model("event").findOne(where="id = #val(params.key)#", include="eventresources");
 		_normalizeEventDateFieldsForPicker(event);
     	customfields=getCustomFields(objectname="event", key=event.key());
         renderView(action="add");
@@ -280,6 +288,9 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	*  @hint Event CRUD
 	*/
 	public void function create() {
+		if(!requirePostRequest()){
+			return;
+		}
 		if(structkeyexists(params, "event")){
 			var creatorUserId = 0;
 			var hasEventUserIdColumn = _eventsTableHasUserId();
@@ -398,6 +409,9 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	*  @hint Event CRUD
 	*/
 	public void function update() {
+		if(!requirePostRequest()){
+			return;
+		}
 		if(!_checkEventOwnerOrAdmin()){
 			return;
 		}
@@ -423,6 +437,9 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	*  @hint Event CRUD
 	*/
 	public void function delete() {
+		if(!requirePostRequest()){
+			return;
+		}
 		if(!_checkEventOwnerOrAdmin()){
 			return;
 		}
@@ -603,6 +620,9 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 			var wc=[];
 			var parsedFrom = "";
 			var parsedTo = "";
+			var safeStatus = "";
+			var safeLocationList = "";
+			var safeKeyword = "";
 			// Date Filter
 			if(structKeyExists(params, "datefrom")
 				AND structKeyExists(params, "dateto")
@@ -618,19 +638,27 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 			}
 			// Status Filter
 			if(structKeyExists(params, "status") AND len(params.status)){
-				arrayAppend(wc, "status = '#params.status#'");
+				safeStatus = lCase(trim(params.status));
+				if(listFindNoCase("approved,pending,denied", safeStatus)){
+					arrayAppend(wc, "status = '#safeStatus#'");
+				}
 			}
 
 			// Location Filter
 			if(structKeyExists(params, "location") AND len(params.location)){
-				arrayAppend(wc, "FIND_IN_SET(locationid, '#params.location#')");
+				safeLocationList = _sanitizeNumericList(params.location);
+				if(len(safeLocationList)){
+					arrayAppend(wc, "FIND_IN_SET(locationid, '#safeLocationList#')");
+				}
 			}
 
 			// Keyword filter
 			if(structKeyExists(params, "q") AND len(params.q)){
-				params.q=striptags(params.q);
-				arrayAppend(wc, "(title LIKE '%#params.q#%' OR description LIKE '%#params.q#%')");
-
+				safeKeyword = trim(striptags(params.q));
+				safeKeyword = replace(safeKeyword, "'", "''", "all");
+				if(len(safeKeyword)){
+					arrayAppend(wc, "(title LIKE '%#safeKeyword#%' OR description LIKE '%#safeKeyword#%')");
+				}
 			}
 
 			if(arrayLen(wc)){
@@ -693,19 +721,44 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	*  @hint Remote concurrency Check
 	*/
 	public void function check() {
+		eCheck = queryNew("");
 		if(structKeyExists(params, "start")
 			AND structKeyExists(params, "end")
 			AND structKeyExists(params, "location")
 			AND structKeyExists(params, "id")){
+			if(
+				!isDate(params.start)
+				OR !isDate(params.end)
+				OR !isNumeric(params.location)
+			){
+				return;
+			}
+			var safeEventId = isNumeric(params.id) ? val(params.id) : 0;
+			var safeLocationId = val(params.location);
+			var safeStart = createODBCDateTime(parseDateTime(params.start));
 			// We need to check for any events which overlap with the requested timerange
 			// If editing, check we don't bring up the actual event
 			// Don't register denied events
 			if(len(params.id)){
-				eCheck=model("event").findAll(where="status != 'denied' AND id != #params.id# AND start <= '#params.start#' AND end >= '#params.start#' AND locationid = #params.location#");
+				eCheck=model("event").findAll(where="status != 'denied' AND id != #safeEventId# AND start <= #safeStart# AND end >= #safeStart# AND locationid = #safeLocationId#");
 			} else {
-				eCheck=model("event").findAll(where="status != 'denied' AND start <= '#params.start#' AND end >= '#params.start#' AND locationid = #params.location#");
+				eCheck=model("event").findAll(where="status != 'denied' AND start <= #safeStart# AND end >= #safeStart# AND locationid = #safeLocationId#");
 			}
 
 		}
+	}
+
+	/**
+	*  @hint Sanitizes comma-separated numeric ids into a strict numeric list.
+	*/
+	private string function _sanitizeNumericList(required any rawList) {
+		var cleaned = [];
+		for(var item in listToArray(arguments.rawList & "")){
+			item = trim(item);
+			if(isNumeric(item) AND val(item) GT 0){
+				arrayAppend(cleaned, val(item));
+			}
+		}
+		return arrayToList(cleaned);
 	}
 }

@@ -9,6 +9,8 @@ component extends="Controller" hint="Permissions Controller"
 		// super.config() disabled during migration;
 // Permission filters
 		// legacy super.init removed for CFWheels2+
+		protectsFromForgery(with="exception");
+		filters(through="requirePostRequest", only="update");
 		filters(through="checkPermissionAndRedirect", permission="accessPermissions");
 		filters(through="denyInDemoMode", only="edit,update");
 		// Verification
@@ -28,7 +30,7 @@ component extends="Controller" hint="Permissions Controller"
 	*  @hint Edit Form
 	*/
 	public void function edit() {
-		permission=model("permission").findOne(where="id = '#params.key#'");
+		permission=model("permission").findByKey(params.key);
 		if(!isObject(permission)){
 			redirectTo(back=true, error="Sorry, that permission can't be found, isn't editable or the board is in demo mode");
 		}
@@ -38,8 +40,11 @@ component extends="Controller" hint="Permissions Controller"
 	*  @hint Update
 	*/
 	public void function update() {
+		if(!requirePostRequest()){
+			return;
+		}
 		if(structkeyexists(params, "permission")){
-	    	permission = model("permission").findOne(where="id = '#params.key#'");
+	    	permission = model("permission").findByKey(params.key);
 	    	if(!isObject(permission)){
 	    		redirectTo(back=true, error="Sorry, that permission can't be found, isn't editable or the board is in demo mode");
 	    	} else {

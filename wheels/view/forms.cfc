@@ -169,7 +169,7 @@ component {
 			encode = arguments.encode,
 			encodeExcept = local.encodeExcept
 		) & arguments.append;
-		if ($isRequestProtectedFromForgery() && ListFindNoCase("post,put,patch,delete", arguments.method)) {
+		if (ListFindNoCase("post,put,patch,delete", arguments.method)) {
 			local.rv &= authenticityTokenField();
 		}
 		if (StructKeyExists(local, "method") && local.method != "get") {

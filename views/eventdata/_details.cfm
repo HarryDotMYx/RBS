@@ -11,6 +11,8 @@
 .event-popup-actions{padding:0 18px 18px}
 .event-popup-actions .btn{margin-right:6px;margin-bottom:6px}
 .event-popup-note{margin-top:10px}
+.btn-inline{display:inline-block;margin:0 6px 6px 0}
+.btn-inline .btn{margin:0}
 </style>
 
 <cfoutput>
@@ -90,18 +92,18 @@
 			</cfif>
 		</div>
 
-		<div class="event-popup-actions">
-			<cfif checkPermission("allowRoomBooking")>
-				#linkTo(action="edit", key=event.eventid, text="<span class='glyphicon glyphicon-pencil'></span> Edit", controller="bookings", class="btn btn-info btn-sm", encode=false)#
-				#linkTo(action="clone", key=event.eventid, text="<span class='glyphicon glyphicon-repeat'></span> Clone", controller="bookings", class="btn btn-warning btn-sm", encode=false)#
-				#linkTo(action="delete", key=event.eventid, text="<span class='glyphicon glyphicon-trash'></span> Delete", controller="bookings", class="btn btn-danger btn-sm", confirm="Are you sure?", encode=false)#
-			</cfif>
-			<cfif application.rbs.setting.approveBooking AND event.status EQ "pending" AND checkPermission("allowApproveBooking")>
-				#linkTo(action="approve", key=event.eventid, text="<span class='glyphicon glyphicon-ok'></span> Approve", controller="bookings", class="btn btn-success btn-sm", encode=false)#
-				#linkTo(action="deny", key=event.eventid, text="<span class='glyphicon glyphicon-remove'></span> Deny", controller="bookings", class="btn btn-danger btn-sm", encode=false)#
-				#linkTo(action="deny", key=event.eventid, text="<span class='glyphicon glyphicon-trash'></span> Deny & Delete", controller="bookings", class="btn btn-danger btn-sm", params="delete=1", encode=false)#
-			</cfif>
-		</div>
+			<div class="event-popup-actions">
+				<cfif checkPermission("allowRoomBooking")>
+					#linkTo(action="edit", key=event.eventid, text="<span class='glyphicon glyphicon-pencil'></span> Edit", controller="bookings", class="btn btn-info btn-sm", encode=false)#
+					#linkTo(action="clone", key=event.eventid, text="<span class='glyphicon glyphicon-repeat'></span> Clone", controller="bookings", class="btn btn-warning btn-sm", encode=false)#
+					#buttonTo(action="delete", key=event.eventid, text="<span class='glyphicon glyphicon-trash'></span> Delete", controller="bookings", class="btn-inline", inputClass="btn btn-danger btn-sm", inputOnclick="return confirm('Are you sure?');", encode=false)#
+				</cfif>
+				<cfif application.rbs.setting.approveBooking AND event.status EQ "pending" AND checkPermission("allowApproveBooking")>
+					#buttonTo(action="approve", key=event.eventid, text="<span class='glyphicon glyphicon-ok'></span> Approve", controller="bookings", class="btn-inline", inputClass="btn btn-success btn-sm", encode=false)#
+					#buttonTo(action="deny", key=event.eventid, text="<span class='glyphicon glyphicon-remove'></span> Deny", controller="bookings", class="btn-inline", inputClass="btn btn-danger btn-sm", encode=false)#
+					#buttonTo(action="deny", key=event.eventid, text="<span class='glyphicon glyphicon-trash'></span> Deny & Delete", controller="bookings", class="btn-inline", inputClass="btn btn-danger btn-sm", inputOnclick="return confirm('Are you sure?');", params="delete=1", encode=false)#
+				</cfif>
+			</div>
 	</div>
 <cfelse>
 	<div class="alert alert-danger">You're not allowed to view the booking details.</div>

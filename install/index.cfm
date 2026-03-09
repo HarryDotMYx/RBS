@@ -3,13 +3,18 @@
 <cfinclude template="functions.cfm">
 <cfsilent>
 
-	<cfscript>
-		c=1;
-		request.dsn="roombooking";
-		request.showadminform=false;
+		<cfscript>
+			c=1;
+			request.dsn="roombooking";
+			request.showadminform=false;
+			// Installer must be inaccessible once install lock exists.
+			if (fileExists(expandPath("../config/install.lock"))) {
+				location(url="/", addtoken="false", statusCode=302);
+				abort;
+			}
 
-		if(structKeyExists(form, "email")){
-			createInitialAdminUser(request.dsn);
+			if(structKeyExists(form, "email")){
+				createInitialAdminUser(request.dsn);
 		}
 
 		request.checks=[];
@@ -131,7 +136,7 @@
 	 		<div class="alert alert-success">
 	 			<h2>Installation Complete!</h2>
 	 			<p><strong>All checks passed and the database schema has been successfully configured.</strong></p>
-                <p><br/><a href="/?reload=true&password=roombooking" class="btn btn-success btn-lg">Click here to start using Room Booking System</a><br/><br/></p>
+	                <p><br/><a href="/" class="btn btn-success btn-lg">Click here to start using Room Booking System</a><br/><br/></p>
 	 			<p>Other recommended changes once you login:</p>
 	 			<ul>
 	 				<li>Update the Main Application Settings (Email, Logo)</li>
@@ -199,4 +204,3 @@
 </html>
 
 </cfoutput>
-

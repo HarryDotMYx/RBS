@@ -35,17 +35,32 @@ component extends="Model" hint="User Model"
 	*  @hint Secure Password
 	*/
 	public void function securePassword() {
-	  	var p = {};
 		var hasPassword = structKeyExists(this, "password");
 		var passwordValue = hasPassword ? trim(toString(this.password)) : "";
 		// Only hash when a non-empty password is explicitly supplied.
 		if (len(passwordValue)) {
-	     	p.salt.uuid = createUUID();
-	     	p.salt.encrypted = encrypt(p.salt.uuid, getAuthKey(), 'CFMX_COMPAT');
-	     	p.pw.hashed = hash(passwordValue & p.salt.uuid, 'SHA-512');
-	     	this.salt = p.salt.encrypted;
-	     	this.password = p.pw.hashed;
+	     	this.password = _generateAdaptivePasswordHash(passwordValue);
+	     	// Keep legacy salt column blank once account is migrated to PBKDF2.
+	     	this.salt = "";
 	     }
+	}
+
+	/**
+	*  @hint Create PBKDF2 hash for password storage.
+	*/
+	private string function _generateAdaptivePasswordHash(required string passwordValue) {
+		var secureRandom = createObject("java", "java.security.SecureRandom");
+		var saltBytes = secureRandom.generateSeed(16);
+		var iterations = 210000;
+		var keySpec = createObject("java", "javax.crypto.spec.PBEKeySpec").init(
+			createObject("java", "java.lang.String").init(arguments.passwordValue & "").toCharArray(),
+			saltBytes,
+			iterations,
+			256
+		);
+		var skf = createObject("java", "javax.crypto.SecretKeyFactory").getInstance("PBKDF2WithHmacSHA256");
+		var derivedBytes = skf.generateSecret(keySpec).getEncoded();
+		return "pbkdf2_sha256$#iterations#$#binaryEncode(saltBytes, 'base64')#$#binaryEncode(derivedBytes, 'base64')#";
 	}
 
 	public boolean function isPasswordChanging() {
@@ -90,16 +105,26 @@ component extends="Model" hint="User Model"
 	/**
 	*  @hint Set PW reset token
 	*/
-	public void function createPasswordResetToken() {
-		this.passwordResetToken = generateToken();
+	public string function createPasswordResetToken() {
+		var rawToken = generateToken();
+		this.passwordResetToken = hashResetToken(rawToken);
 		this.passwordResetAt = Now();
 		this.save();
+		return rawToken;
 	}
 
 	/**
 	*  @hint make unique token
 	*/
 	public string function generateToken() {
-		return Replace(LCase(CreateUUID()), "-", "", "all");
+		var secureRandom = createObject("java", "java.security.SecureRandom");
+		return lCase(binaryEncode(secureRandom.generateSeed(32), "hex"));
+	}
+
+	/**
+	*  @hint Hash reset token before storing in DB.
+	*/
+	public string function hashResetToken(required string rawToken) {
+		return "sha256$" & lCase(hash(arguments.rawToken & "", "SHA-256"));
 	}
 }

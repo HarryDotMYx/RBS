@@ -39,14 +39,14 @@
 						<cfloop query="customtemplates">
 							<cfoutput>
 								<tr>
-									<td>#parentmodel#</td>
-									<td>#type#</td>
-									<td>
-										<div class="btn-group">
-											#linkTo(text="<i class='glyphicon glyphicon-edit'></i> Edit", class="btn btn-xs btn-info", action="edittemplate", params="type=#type#", key="#parentmodel#", encode=false)#
-											#linkTo(text="<i class='glyphicon glyphicon-trash'></i> Delete", class="btn btn-xs btn-danger", action="deletetemplate", key="#parentmodel#", params="type=#type#", confirm='Are you Sure?', encode=false)#
-										</div>
-									</td>
+									<td>#h(parentmodel)#</td>
+									<td>#h(type)#</td>
+										<td>
+											<div class="btn-group">
+												#linkTo(text="<i class='glyphicon glyphicon-edit'></i> Edit", class="btn btn-xs btn-info", action="edittemplate", params="type=#urlEncodedFormat(type & '')#", key="#parentmodel#", encode=false)#
+												#buttonTo(text="<i class='glyphicon glyphicon-trash'></i> Delete", style="display:inline-block", action="deletetemplate", key="#parentmodel#", params="type=#urlEncodedFormat(type & '')#", inputClass="btn btn-xs btn-danger", inputOnclick="return confirm('Are you Sure?');", encode=false)#
+											</div>
+										</td>
 								</tr>
 							</cfoutput>
 						</cfloop>
@@ -94,16 +94,16 @@
 								<cfoutput>
 									<tr>
 										<td>#id#</td>
-										<td>#parentmodel#</td>
-										<td>#name#</td>
-										<td>#type#</td>
-										<td>#description#</td>
-										<td>
-											<div class="btn-group">
-												#linkTo(text="<i class='glyphicon glyphicon-edit'></i> Edit", class="btn btn-xs btn-info", action="edit", key=id, encode=false)#
-												#linkTo(text="<i class='glyphicon glyphicon-trash'></i> Delete", class="btn btn-xs btn-danger", action="delete", key=id, confirm='Are you Sure?', encode=false)#
-											</div>
-										</td>
+										<td>#h(parentmodel)#</td>
+										<td>#h(name)#</td>
+										<td>#h(type)#</td>
+										<td>#h(description)#</td>
+											<td>
+												<div class="btn-group">
+													#linkTo(text="<i class='glyphicon glyphicon-edit'></i> Edit", class="btn btn-xs btn-info", action="edit", key=id, encode=false)#
+													#buttonTo(text="<i class='glyphicon glyphicon-trash'></i> Delete", style="display:inline-block", action="delete", key=id, inputClass="btn btn-xs btn-danger", inputOnclick="return confirm('Are you Sure?');", encode=false)#
+												</div>
+											</td>
 									</tr>
 								</cfoutput>
 							</cfloop>

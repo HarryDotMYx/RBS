@@ -11,9 +11,9 @@
       <cfelse>
         <h1>Upcoming Events:</h1>
       </cfif>
-      <cfif isSingleLocation>
-        <h2>#events.name#</h2>
-      </cfif>
+	      <cfif isSingleLocation>
+	        <h2>#h(events.name)#</h2>
+	      </cfif>
     </div>
   <cfif !events.recordcount>
       <h1>No Events</h1>
@@ -40,7 +40,7 @@
                <cfelse>
                 #_durationString(DateDiff("n", start, end))#
              </cfif></span></td>
-             <td>#title#<br /><span class="location">#name# (#description#)</small></span></td>
+	             <td>#h(title)#<br /><span class="location">#h(name)# (#h(description)#)</small></span></td>
            </tr>
          </cfoutput>
         </cfloop>

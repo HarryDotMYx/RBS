@@ -4,9 +4,8 @@ component output="false" {
 	this.wheels = {};
 	this.wheels.rootPath = GetDirectoryFromPath(GetBaseTemplatePath());
 
-	this.name = createUUID();
-	// Give this application a unique name by taking the path to the root and hashing it.
-	// this.name = Hash(this.wheels.rootPath);
+	// Bootstrap fallback only; final app name is set after env load.
+	this.name = Hash(this.wheels.rootPath);
 
 	this.bufferOutput = true;
 
@@ -88,6 +87,21 @@ component output="false" {
 		
 		// Perform variable interpolation
 		performVariableInterpolation(this.env);
+	}
+
+	// Build environment-aware app name to prevent session bleed between instances
+	// (e.g. production on :8888 and development on :3999 sharing one host).
+	variables.instanceName = trim(getRuntimeEnvValue("RBS_INSTANCE_NAME", ""));
+	variables.wheelsEnvName = lCase(trim(getRuntimeEnvValue("WHEELS_ENV", "production")));
+	if(len(variables.instanceName)){
+		variables.sanitizedInstanceName = reReplaceNoCase(variables.instanceName, "[^a-z0-9_-]", "", "all");
+		if(len(variables.sanitizedInstanceName)){
+			this.name = "RoomBooking-" & variables.sanitizedInstanceName;
+		} else {
+			this.name = Hash(this.wheels.rootPath & "|" & variables.wheelsEnvName);
+		}
+	} else {
+		this.name = Hash(this.wheels.rootPath & "|" & variables.wheelsEnvName);
 	}
 
 	// Configure datasources at runtime so DB host/credentials can be controlled via environment variables.
@@ -178,6 +192,7 @@ component output="false" {
 		}else{
 			application.contentOnly = false;
 		}
+		setResponseSecurityHeaders();
 
 		local.lockName = "reloadLock" & this.name;
 
@@ -223,24 +238,29 @@ component output="false" {
 			}
 		}
 
-		// Reload application properly using applicationStop() if requested.
-		if (
-			StructKeyExists(url, "reload")
-			&& (
-				!StructKeyExists(application, "wheels") || !StructKeyExists(application.wheels, "reloadPassword")
-				|| !Len(application.wheels.reloadPassword)
-				|| (StructKeyExists(url, "password") && url.password == application.wheels.reloadPassword)
-			)
-		) {
-			application.wo.$debugPoint("total,reload");
-			if (StructKeyExists(url, "lock") && !url.lock) {
-				this.$handleRestartAppRequest();
-			} else {
-				local.executeArgs = {"componentReference" = "application"};
-				application.wo.$simpleLock(name = local.lockName, execute = "$handleRestartAppRequest", type = "exclusive", timeout = 180, executeArgs = local.executeArgs);
+			// Reload application only when an explicit configured password is provided and matches.
+			if (StructKeyExists(url, "reload")) {
+				if (
+					!StructKeyExists(application, "wheels")
+					|| !StructKeyExists(application.wheels, "reloadPassword")
+					|| !len(application.wheels.reloadPassword)
+				) {
+					writeLog(type="warning", text="RBS_RELOAD_BLOCKED reason=reloadPassword_not_configured");
+					return true;
+				}
+				if (!StructKeyExists(url, "password") || url.password != application.wheels.reloadPassword) {
+					writeLog(type="warning", text="RBS_RELOAD_BLOCKED reason=invalid_password");
+					return true;
+				}
+				application.wo.$debugPoint("total,reload");
+				if (StructKeyExists(url, "lock") && !url.lock) {
+					this.$handleRestartAppRequest();
+				} else {
+					local.executeArgs = {"componentReference" = "application"};
+					application.wo.$simpleLock(name = local.lockName, execute = "$handleRestartAppRequest", type = "exclusive", timeout = 180, executeArgs = local.executeArgs);
+				}
+				return false; // Stop processing this request after restart
 			}
-			return false; // Stop processing this request after restart
-		}
 
 		// Run the rest of the request start code.
 		arguments.componentReference = "wheels.events.EventMethods";
@@ -500,6 +520,20 @@ component output="false" {
 	 */
 	private boolean function isString(required any value) {
 		return isSimpleValue(arguments.value) && !isBoolean(arguments.value) && !isNumeric(arguments.value);
+	}
+
+	/**
+	 * Set baseline HTTP response security headers.
+	 */
+	private void function setResponseSecurityHeaders() {
+		cfheader(name="X-Content-Type-Options", value="nosniff");
+		cfheader(name="X-Frame-Options", value="SAMEORIGIN");
+		cfheader(name="Referrer-Policy", value="strict-origin-when-cross-origin");
+		cfheader(name="Permissions-Policy", value="camera=(), microphone=(), geolocation=()");
+		cfheader(name="Content-Security-Policy", value="frame-ancestors 'self'; object-src 'none'; base-uri 'self'");
+		if (structKeyExists(cgi, "https") && lCase(cgi.https & "") EQ "on") {
+			cfheader(name="Strict-Transport-Security", value="max-age=31536000; includeSubDomains");
+		}
 	}
 
 }

@@ -9,6 +9,8 @@ component extends="Controller" hint="Custom Fields and Templating"
 		// super.config() disabled during migration;
 // Permission filters
 		// legacy super.init removed for CFWheels2+
+		protectsFromForgery(with="exception");
+		filters(through="requirePostRequest", only="create,update,delete,createtemplate,updatetemplate,deletetemplate");
 		filters(through="checkPermissionAndRedirect", permission="accessCustomfields");
 		filters(through="denyInDemoMode", except="index");
 		useslayout(template=false, only="fieldpicker");
@@ -41,6 +43,9 @@ component extends="Controller" hint="Custom Fields and Templating"
 	*  @hint Create Custom Field
 	*/
 	public void function create() {
+		if(!requirePostRequest()){
+			return;
+		}
 		if(structkeyexists(params, "customfield")){
 	    	customfield = model("customfield").new(params.customfield);
 			if ( customfield.save() ) {
@@ -56,15 +61,18 @@ component extends="Controller" hint="Custom Fields and Templating"
 	*  @hint Edit Custom Field
 	*/
 	public void function edit() {
-		customfield=model("customfield").findOne(where="id = #params.key#");
+		customfield=model("customfield").findOne(where="id = #val(params.key)#");
 	}
 
 	/**
 	*  @hint Update Custom Field
 	*/
 	public void function update() {
+		if(!requirePostRequest()){
+			return;
+		}
 		if(structkeyexists(params, "customfield")){
-	    	customfield = model("customfield").findOne(where="id = #params.key#");
+	    	customfield = model("customfield").findOne(where="id = #val(params.key)#");
 			customfield.update(params.customfield);
 			if ( customfield.save() )  {
 				redirectTo(action="index", success="customfield successfully updated");
@@ -79,7 +87,10 @@ component extends="Controller" hint="Custom Fields and Templating"
 	*  @hint Delete Custom Field
 	*/
 	public void function delete() {
-    	customfield = model("customfield").findOne(where="id = #params.key#");
+		if(!requirePostRequest()){
+			return;
+		}
+	    	customfield = model("customfield").findOne(where="id = #val(params.key)#");
 		if ( customfield.delete() )  {
 			redirectTo(action="index", success="customfield successfully deleted");
 		}
@@ -101,6 +112,9 @@ component extends="Controller" hint="Custom Fields and Templating"
 	*  @hint Create Template
 	*/
 	public void function createtemplate() {
+		if(!requirePostRequest()){
+			return;
+		}
 		if(structkeyexists(params, "template")){
 	    	template = model("template").new(params.template);
 			if ( template.save() ) {
@@ -116,15 +130,22 @@ component extends="Controller" hint="Custom Fields and Templating"
 	*  @hint Edit Template
 	*/
 	public void function edittemplate() {
-		template=model("template").findOne(where="parentmodel = '#params.key#' AND type='#params.type#'");
+		var safeParentModel = replace(params.key & "", "'", "''", "all");
+		var safeTemplateType = replace(params.type & "", "'", "''", "all");
+		template=model("template").findOne(where="parentmodel = '#safeParentModel#' AND type='#safeTemplateType#'");
 	}
 
 	/**
 	*  @hint Update Template
 	*/
 	public void function updatetemplate() {
+		if(!requirePostRequest()){
+			return;
+		}
 		if(structkeyexists(params, "template")){
-	    	template = model("template").findOne(where="parentmodel = '#params.key#' AND type='#params.type#'");
+	    	var safeParentModel = replace(params.key & "", "'", "''", "all");
+	    	var safeTemplateType = replace(params.type & "", "'", "''", "all");
+	    	template = model("template").findOne(where="parentmodel = '#safeParentModel#' AND type='#safeTemplateType#'");
 			template.update(params.template);
 			if ( template.save() )  {
 				redirectTo(action="index", success="template successfully updated");
@@ -139,7 +160,12 @@ component extends="Controller" hint="Custom Fields and Templating"
 	*  @hint Delete Template
 	*/
 	public void function deletetemplate() {
-    	template = model("template").findOne(where="parentmodel = '#params.key#' AND type='#params.type#'");
+		if(!requirePostRequest()){
+			return;
+		}
+	    	var safeParentModel = replace(params.key & "", "'", "''", "all");
+	    	var safeTemplateType = replace(params.type & "", "'", "''", "all");
+	    	template = model("template").findOne(where="parentmodel = '#safeParentModel#' AND type='#safeTemplateType#'");
 		if ( template.delete() )  {
 			redirectTo(action="index", success="template successfully deleted");
 		}
@@ -154,6 +180,13 @@ component extends="Controller" hint="Custom Fields and Templating"
 	*  @hint Gridmanger field picker
 	*/
 	public string function fieldpicker() {
+			if(
+				!structKeyExists(application, "rbs")
+				OR !structKeyExists(application.rbs, "modeltypes")
+				OR !listFindNoCase(application.rbs.modeltypes, params.key & "")
+			){
+				return "";
+			}
 			systemfields=model(params.key).new();
 			customfields=getBlankCustomFields(params.key);
 

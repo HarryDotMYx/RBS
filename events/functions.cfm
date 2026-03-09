@@ -121,7 +121,8 @@
     *  @hint Generate an API Key
     */
     public string function _generateApiKey(){
-        return hash(createUUID() & getAuthKey(), 'SHA-512');
+        var sr = createObject("java", "java.security.SecureRandom");
+        return lCase(binaryEncode(sr.generateSeed(32), "hex"));
     }
 
     /**
@@ -142,6 +143,9 @@
     *  @hint Hash Password using SHA512
     */
     public string function hashPassword(required string password, required string salt) {
+        if(!len(trim(arguments.salt & ""))){
+            return hash(arguments.password, 'SHA-512');
+        }
         return hash(arguments.password & arguments.salt, 'SHA-512');
     }
 

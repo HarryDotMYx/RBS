@@ -9,6 +9,7 @@ component extends="Controller" hint="RSS/ICal Etc"
 		
 		// super.config() disabled during migration;
 // Permissions (no super.init())
+		protectsFromForgery(with="exception");
 		filters(through="f_isValidAPIRequest", except="index");
 		filters(through="checkPermissionAndRedirect", permission="allowAPI", only="index");
 
@@ -35,7 +36,7 @@ component extends="Controller" hint="RSS/ICal Etc"
 			isToday=true;
 			if(structKeyExists(params, "location") AND isnumeric(params.location)){
 				isSingleLocation=true;
-				events=model("location").findAll(where="status = 'approved' AND start > '#sd#' AND end < '#ed#' AND id = #params.location#", include="events", order="start", maxrows=params.maxrows);
+					events=model("location").findAll(where="status = 'approved' AND start > '#sd#' AND end < '#ed#' AND id = #val(params.location)#", include="events", order="start", maxrows=params.maxrows);
 			}
 			else {
 				events=model("location").findAll(where="status = 'approved' AND start > '#sd#' AND end < '#ed#'", include="events", order="start", maxrows=params.maxrows);
@@ -43,7 +44,7 @@ component extends="Controller" hint="RSS/ICal Etc"
 		} else {
 			if(structKeyExists(params, "location") AND isnumeric(params.location)){
 				isSingleLocation=true;
-				events=model("location").findAll(where="status = 'approved' AND start > '#now()#' AND id = #params.location#", include="events", order="start", maxrows=params.maxrows);
+					events=model("location").findAll(where="status = 'approved' AND start > '#now()#' AND id = #val(params.location)#", include="events", order="start", maxrows=params.maxrows);
 			}
 			else {
 				events=model("location").findAll(where="status = 'approved' AND start > '#now()#'", include="events", order="start", maxrows=params.maxrows);
@@ -59,7 +60,7 @@ component extends="Controller" hint="RSS/ICal Etc"
 		param name="params.maxrows" default="25" type="numeric";
 		param name="params.format" default="xml" type="string";
 		if(structKeyExists(params, "location") AND isnumeric(params.location)){
-				events=model("location").findAll(where="status = 'approved' AND start > '#now()#' AND id = #params.location#", include="events", order="start", maxrows=params.maxrows);
+					events=model("location").findAll(where="status = 'approved' AND start > '#now()#' AND id = #val(params.location)#", include="events", order="start", maxrows=params.maxrows);
 			}
 			else {
 				events=model("location").findAll(where="status = 'approved' AND start > '#now()#'", include="events", order="start", maxrows=params.maxrows);
@@ -76,7 +77,7 @@ component extends="Controller" hint="RSS/ICal Etc"
 		var CRLF=chr(13)&chr(10);
 		data = "";
 		if(structKeyExists(params, "location") AND isnumeric(params.location)){
-			events=model("location").findAll(where="status = 'approved' AND start > '#now()#' AND id = #params.location#", include="events", order="start", maxrows=params.maxrows);
+			events=model("location").findAll(where="status = 'approved' AND start > '#now()#' AND id = #val(params.location)#", include="events", order="start", maxrows=params.maxrows);
 		}
 		else {
 			events=model("location").findAll(where="status = 'approved' AND start > '#now()#'", include="events", order="start", maxrows=params.maxrows);
@@ -118,13 +119,75 @@ component extends="Controller" hint="RSS/ICal Etc"
 	*/
 	private void function f_isValidAPIRequest() {
 		var r=false;
-		if(structKeyExists(params, "token") AND len(params.token) GT 25){
-			if(model("user").exists(where="apitoken='#params.token#'")){
-				r=true;
-			}
+		var tokenValue = _extractApiToken();
+		if(len(tokenValue) GT 25){
+			var tokenCheck = queryExecute(
+				"SELECT id FROM users WHERE apitoken = ? LIMIT 1",
+				[tokenValue],
+				{datasource=application.wheels.datasourcename}
+			);
+			r = (tokenCheck.recordCount GT 0);
 		}
 		if(!r){
-			redirectTo(route="denied", error="No API Authentication Token Present");
+			redirectTo(route="denied", error="Missing or invalid API authentication token.");
 		}
+	}
+
+	/**
+	*  @hint Extract API token from headers first, with legacy query-string fallback.
+	*/
+	private string function _extractApiToken() {
+		var tokenValue = "";
+		var authHeader = "";
+		try {
+			var reqData = getHttpRequestData();
+			if(structKeyExists(reqData, "headers") AND isStruct(reqData.headers)){
+				for(var headerName in reqData.headers){
+					if(lCase(headerName) EQ "x-api-token"){
+						tokenValue = trim(reqData.headers[headerName] & "");
+						break;
+					}
+					if(lCase(headerName) EQ "authorization"){
+						authHeader = trim(reqData.headers[headerName] & "");
+					}
+				}
+			}
+		} catch(any e){
+			tokenValue = "";
+		}
+
+		if(!len(tokenValue) AND len(authHeader) AND reFindNoCase("^Bearer\\s+.+", authHeader)){
+			tokenValue = trim(reReplaceNoCase(authHeader, "^Bearer\\s+", "", "one"));
+		}
+
+		// Backward compatibility for URL token is opt-in only.
+		if(
+			!len(tokenValue)
+			AND _allowQueryTokenFallback()
+			AND structKeyExists(params, "token")
+			AND len(trim(params.token & ""))
+		){
+			tokenValue = trim(params.token & "");
+			writeLog(type="warning", text="[API_TOKEN_DEPRECATED] Query-string token used by #cgi.remote_addr#");
+		}
+
+		return tokenValue;
+	}
+
+	/**
+	*  @hint Whether legacy `?token=` auth is allowed (disabled by default).
+	*/
+	private boolean function _allowQueryTokenFallback() {
+		if(
+			structKeyExists(application, "env")
+			AND structKeyExists(application.env, "API_ALLOW_QUERY_TOKEN")
+		){
+			var rawValue = application.env["API_ALLOW_QUERY_TOKEN"];
+			if(isBoolean(rawValue)){
+				return rawValue;
+			}
+			return (listFindNoCase("1,true,yes,on", trim(rawValue & "")) GT 0);
+		}
+		return false;
 	}
 }

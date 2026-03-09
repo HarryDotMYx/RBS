@@ -147,7 +147,7 @@ component {
 			local.skip = ListAppend(local.skip, $routeVariables(argumentCollection = arguments));
 		}
 		local.encode = IsBoolean(arguments.encode) && arguments.encode ? "attributes" : false;
-		if ($isRequestProtectedFromForgery() && ListFindNoCase("post,put,patch,delete", arguments.method)) {
+		if (ListFindNoCase("post,put,patch,delete", arguments.method)) {
 			local.content &= authenticityTokenField();
 		}
 		return $element(

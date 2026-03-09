@@ -9,6 +9,8 @@ component extends="Controller" hint="Settings Controller"
 		// super.config() disabled during migration;
 // Permission filters
 		// legacy super.init removed for CFWheels2+
+		protectsFromForgery(with="exception");
+		filters(through="requirePostRequest", only="update");
 		filters(through="checkPermissionAndRedirect", permission="accessSettings");
 		filters(through="_checkSettingsAdmin");
 		filters(through="denyInDemoMode", only="edit,update");
@@ -26,7 +28,7 @@ component extends="Controller" hint="Settings Controller"
 	*  @hint Edit a setting
 	*/
 	public void function edit() {
-		setting=model("setting").findOne(where="id = '#params.key#'");
+		setting=model("setting").findByKey(params.key);
 		if(!isObject(setting) OR !setting.Editable OR application.rbs.setting.isDemoMode){
 			redirectTo(back=true, error="Sorry, that setting can't be found, isn't editable or the board is in demo mode");
 		}
@@ -36,8 +38,11 @@ component extends="Controller" hint="Settings Controller"
 	*  @hint Update a setting
 	*/
 	public void function update() {
+		if(!requirePostRequest()){
+			return;
+		}
 		if(structkeyexists(params, "setting")){
-	    	setting = model("setting").findOne(where="id = '#params.key#'");
+	    	setting = model("setting").findByKey(params.key);
 	    	if(!isObject(setting) OR !setting.Editable OR application.rbs.setting.isDemoMode){
 	    		redirectTo(back=true, error="Sorry, that setting can't be found, isn't editable or the board is in demo mode");
 	    	} else {

@@ -8,13 +8,13 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#application.wheels.rootpath#">
-            <cfif len(application.rbs.setting.sitelogo) GT 1>
-              <img src="#application.rbs.setting.sitelogo#" alt="Logo" class="img-responsive pull-left logo" />
-            </cfif>
-            <cfif len(application.rbs.setting.sitetitle) GT 1>
-              #application.rbs.setting.sitetitle#
-            </cfif><cfif application.rbs.setting.isDemoMode>(Demo Mode)</cfif></a>
+	          <a class="navbar-brand" href="#application.wheels.rootpath#">
+	            <cfif len(application.rbs.setting.sitelogo) GT 1>
+	              <img src="#h(application.rbs.setting.sitelogo)#" alt="Logo" class="img-responsive pull-left logo" />
+	            </cfif>
+	            <cfif len(application.rbs.setting.sitetitle) GT 1>
+	              #h(application.rbs.setting.sitetitle)#
+	            </cfif><cfif application.rbs.setting.isDemoMode>(Demo Mode)</cfif></a>
         </div>
         <nav class="collapse navbar-collapse">
           <cfif checkpermission("accessCalendar")>
@@ -77,9 +77,9 @@
             </li>
           </cfif>
           
-            <cfif isLoggedIn()>
-              <li>#linkTo(route="logout", text="<span class='glyphicon glyphicon-off'></span> Logout", encode=false)#</li>
-            <cfelse>
+	            <cfif isLoggedIn()>
+	              <li>#buttonTo(route="logout", text="<span class='glyphicon glyphicon-off'></span> Logout", class="navbar-btn", inputClass="btn btn-link navbar-btn", encode=false)#</li>
+	            <cfelse>
               <li class="hidden-lg">#linkTo(route="login", text="<span class='glyphicon glyphicon-lock'></span> Login", encode=false)#</li>
               <li class="dropdown visible-lg">
                 <a class="dropdown-toggle" href="##" data-toggle="dropdown"><span class='glyphicon glyphicon-lock'></span> Login<strong class="caret"></strong></a>

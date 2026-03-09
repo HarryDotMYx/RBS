@@ -4,9 +4,17 @@
 	#includePartial(partial = "list/filter")#
 	#panel(title="Events (#events.recordcount#) records")#
  <cfif events.recordcount>
- <cfif application.rbs.setting.showlocationcolours>
+<cfif application.rbs.setting.showlocationcolours>
 <style>
-<cfloop query="locations"><cfif len(colour)>.#class# {border-left: 6px solid #colour#; }</cfif>
+<cfloop query="locations">
+	<cfset safeCssClass = reReplaceNoCase(class & "", "[^a-z0-9_-]", "", "all")>
+	<cfset safeColour = trim(colour & "")>
+	<cfif reFindNoCase("^##?[0-9a-f]{3}([0-9a-f]{3})?$", safeColour)>
+		<cfif left(safeColour, 1) NEQ "##"><cfset safeColour = "##" & safeColour></cfif>
+	</cfif>
+	<cfif len(safeCssClass) AND reFindNoCase("^##[0-9a-f]{3}([0-9a-f]{3})?$", safeColour)>
+.#safeCssClass# {border-left: 6px solid #lCase(safeColour)#; }
+	</cfif>
 </cfloop>
 </style>
 </cfif>
@@ -44,34 +52,26 @@
 			<td width=100><cfif !allDay>#_formatTime(start)# - #_formatTime(end)#
 				<cfelse>All Day
 			</cfif></td>
-			<td width=150 class="#class#"><cfif len(building)>
-				<small>#building#</small><br />
-			</cfif> #name#<br /><small>#description#</small></td>
-			<td class="#status#">
-				<cfif len(params.q)>
-					#highlight(text=title, phrases=params.q)#
-				<cfelse>
-					#title#
-				</cfif>
+			<td width=150 class="#h(class)#"><cfif len(building)>
+				<small>#h(building)#</small><br />
+			</cfif> #h(name)#<br /><small>#h(description)#</small></td>
+			<td class="#h(status)#">
+				#h(title)#
 			</td>
 
-			<td>#layoutstyle#</td>
+			<td>#h(layoutstyle)#</td>
 			<td>
 			<cfif len(eventdescription)>
-				<cfif len(params.q)>
-					#highlight(text=eventdescription, phrases=params.q)#
-				<cfelse>
-					#eventdescription#
-				</cfif><br />
+				#h(eventdescription)#<br />
 			</cfif>
 			<small>
 			<cfif len(contactemail) AND len(contactname)>
-				Contact: <a href="mailto:#contactemail#">#contactname#</a>
+				Contact: <a href="mailto:#h(contactemail)#">#h(contactname)#</a>
 			<cfelseif len(contactname)>
-				Contact: #contactname#
+				Contact: #h(contactname)#
 			</cfif>
 			<cfif len(contactno)>
-				(#contactno#)
+				(#h(contactno)#)
 			</cfif>
 		</small></td>
 		<td>

@@ -15,8 +15,8 @@
 		<cfloop query="locations">
 			<cfoutput>
 			<tr>
-				<td>#name#</td>
-				<td>#description#</td>
+				<td>#h(name)#</td>
+				<td>#h(description)#</td>
 				<td>
 					<div class="btn-group">
 						#linkTo(text="<i class='glyphicon glyphicon-eye-open'></i> More Information", class="btn btn-xs btn-primary", action="view", key=id, encode=false)#

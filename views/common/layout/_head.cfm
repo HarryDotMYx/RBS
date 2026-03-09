@@ -8,11 +8,12 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>#application.rbs.setting.sitetitle# <cfif application.rbs.setting.isDemoMode>(Demo Mode)</cfif></title>
-        <meta name="description" content="#application.rbs.setting.sitedescription#">
+	        <title>#h(application.rbs.setting.sitetitle)# <cfif application.rbs.setting.isDemoMode>(Demo Mode)</cfif></title>
+	        <meta name="description" content="#h(application.rbs.setting.sitedescription)#">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 	    <meta name="HandheldFriendly" content="true">
 	    <meta name="apple-mobile-web-app-capable" content="yes">
+		#csrfMetaTags()#
         <cfif request.bodyClass EQ "displayBoard">
             <meta http-equiv="refresh" content="30">
         </cfif>

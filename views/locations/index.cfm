@@ -21,15 +21,15 @@
 		<cfoutput>
 		<tr>
 			<td>#id#</td>
-			<td>#building#</td>
-			<td>#name#</td>
-			<td>#description#</td>
+			<td>#h(building)#</td>
+			<td>#h(name)#</td>
+			<td>#h(description)#</td>
 			<td>
-				<div class="btn-group">
-					#linkTo(text="<i class='glyphicon glyphicon-eye-open'></i> View", class="btn btn-xs btn-primary", action="view", key=id, encode=false)#
-					#linkTo(text="<i class='glyphicon glyphicon-edit'></i> Edit", class="btn btn-xs btn-info", action="edit", key=id, encode=false)#
-					#linkTo(text="<i class='glyphicon glyphicon-trash'></i> Delete", class="btn btn-xs btn-danger", action="delete", key=id, confirm='Are you Sure?', encode=false)#
-				</div>
+					<div class="btn-group">
+						#linkTo(text="<i class='glyphicon glyphicon-eye-open'></i> View", class="btn btn-xs btn-primary", action="view", key=id, encode=false)#
+						#linkTo(text="<i class='glyphicon glyphicon-edit'></i> Edit", class="btn btn-xs btn-info", action="edit", key=id, encode=false)#
+						#buttonTo(text="<i class='glyphicon glyphicon-trash'></i> Delete", style="display:inline-block", action="delete", key=id, inputClass="btn btn-xs btn-danger", inputOnclick="return confirm('Are you Sure?');", encode=false)#
+					</div>
 			</td>
 		</tr>
 		</cfoutput>

@@ -11,12 +11,17 @@
 <cfif application.rbs.setting.showlocationcolours>
 	<style>
 	<cfloop query="locations"><cfoutput>
-	<cfif len(colour)>
-	.table-day th.#class# {background: #colour#; border-color: #colour#; color:white; font-weight:normal; font-size:80%;}
-	.table-day tr td.#class# a {color: #colour#;}
-	.table-day tr td.#class#.booked {border-right:1px solid #colour#; border-left:1px solid #colour#;}
-	.table-day tr td.#class#.first {border-top:4px solid #colour#; font-size: 80%; border-bottom:2px solid #colour#;}
-	.table-day tr td.#class#.allday {font-size: 80%; border-bottom:2px solid #colour#;}
+	<cfset safeCssClass = reReplaceNoCase(class & "", "[^a-z0-9_-]", "", "all")>
+	<cfset safeColour = trim(colour & "")>
+	<cfif reFindNoCase("^##?[0-9a-f]{3}([0-9a-f]{3})?$", safeColour)>
+		<cfif left(safeColour, 1) NEQ "##"><cfset safeColour = "##" & safeColour></cfif>
+	</cfif>
+	<cfif len(safeCssClass) AND reFindNoCase("^##[0-9a-f]{3}([0-9a-f]{3})?$", safeColour)>
+	.table-day th.#safeCssClass# {background: #lCase(safeColour)#; border-color: #lCase(safeColour)#; color:white; font-weight:normal; font-size:80%;}
+	.table-day tr td.#safeCssClass# a {color: #lCase(safeColour)#;}
+	.table-day tr td.#safeCssClass#.booked {border-right:1px solid #lCase(safeColour)#; border-left:1px solid #lCase(safeColour)#;}
+	.table-day tr td.#safeCssClass#.first {border-top:4px solid #lCase(safeColour)#; font-size: 80%; border-bottom:2px solid #lCase(safeColour)#;}
+	.table-day tr td.#safeCssClass#.allday {font-size: 80%; border-bottom:2px solid #lCase(safeColour)#;}
 	</cfif>
 	</cfoutput>
 	</cfloop>
@@ -29,11 +34,12 @@
 		<tr>
 			<th>Time</th>
 			<cfloop query="locations">
+				<cfset safeLocationClass = reReplaceNoCase(class & "", "[^a-z0-9_-]", "", "all")>
 				<cfquery dbtype="query" name="locationEventsC">
 				SELECT * FROM events WHERE locationid = <cfqueryparam cfsqltype="cf_sql_numeric" value="#id#">;
 				</cfquery>
 				<cfoutput>
-				<th class="#class# #iif(!locationEventsC.recordcount, '"lower-op"', '')#">
+				<th class="#safeLocationClass# #iif(!locationEventsC.recordcount, '"lower-op"', '')#">
 					#h(name)# (#locationEventsC.recordcount#)
 				</th>
 				</cfoutput>
@@ -43,12 +49,13 @@
 				<tr>
 			<th>All Day</th>
 			<cfloop query="locations">
+				<cfset safeLocationClass = reReplaceNoCase(class & "", "[^a-z0-9_-]", "", "all")>
 				<cfquery dbtype="query" name="locationEventsAllDay">
 				SELECT * FROM allDay WHERE locationid = <cfqueryparam cfsqltype="cf_sql_numeric" value="#id#">;
 				</cfquery>
 				<cfoutput>
 				<cfif locationEventsAllDay.recordcount>
-					<td class="booked #class# allday">
+					<td class="booked #safeLocationClass# allday">
 						<cfloop query="locationEventsAllDay">
 							#linkTo(class="remote-modal", controller='eventdata', action='getEvent', key=locationEventsAllDay.id, text=h(title))#<br />
 						</cfloop>

@@ -8,6 +8,8 @@ component extends="Wheels" hint="Global Controller"
 		// super.config() disabled during migration;
 		// Deny everything by default
 		filters(through="checkPermissionAndRedirect", permission="accessapplication");
+		// Enforce CSRF token checks on state-changing requests.
+		protectsFromForgery(with="exception");
 		// Log everything by default
 		filters(through="logFlash", type="after");
 	}
@@ -86,15 +88,19 @@ component extends="Wheels" hint="Global Controller"
 			return;
 		}
 	 	for(field in arguments.customfields){
-	 		checkValue=model("customfieldjoin").findOne(where="customfieldsid=#field# AND customfieldchildid = #arguments.key#");
+	 		var safeFieldId = isNumeric(field) ? val(field) : 0;
+	 		if(safeFieldId LTE 0){
+	 			continue;
+	 		}
+	 		checkValue=model("customfieldjoin").findOne(where="customfieldsid=#safeFieldId# AND customfieldchildid = #val(arguments.key)#");
 	 		if(isObject(checkValue)){
 	 			updateValue=model("customfieldvalue").findOne(where="id = #checkValue.customfieldvalueid#");
 	 			updateValue.update(value=arguments.customfields[field]);
 	 		} else {
 	 			newValue=model("customfieldvalues").create(value=arguments.customfields[field]);
 	 			newJoin=model("customfieldjoin").create(
-	 				customfieldsid=field,
-	 				customfieldchildid=arguments.key,
+	 				customfieldsid=safeFieldId,
+	 				customfieldchildid=val(arguments.key),
 	 				customfieldvalueid=newValue.key());
 	 		}
 	 	}
@@ -104,24 +110,6 @@ component extends="Wheels" hint="Global Controller"
 
 
  /******************** Global Filters***********************/
- 	/**
- 	*  @hint Redirect to login if not authenticated
- 	*/
- 	public void function _checkLoggedIn() {
- 		if(!isLoggedIn()){
- 			redirectTo(route="login");
- 		}
- 	}
-
- 	/**
- 	*  @hint Redirect logged-in users away (used in Sessions controller)
- 	*/
- 	public void function redirectIfLoggedIn() {
- 		if(isLoggedIn()){
- 			redirectTo(route="home");
- 		}
- 	}
-
  	/**
  	*  @hint Return all room locations
  	*/
@@ -182,6 +170,43 @@ component extends="Wheels" hint="Global Controller"
 	}
 
 	/**
+	*  @hint Reject non-POST requests for state-changing actions
+	*/
+	public boolean function requirePostRequest() {
+		var requestMethod = "";
+		var tokenValue = "";
+		if(structKeyExists(cgi, "request_method")){
+			requestMethod = uCase(cgi.request_method);
+		}
+		if(requestMethod != "POST"){
+			redirectTo(route="denied", error="Invalid request method.");
+			return false;
+		}
+		if(structKeyExists(params, "authenticityToken")){
+			tokenValue = trim(params.authenticityToken & "");
+		}
+		if(!len(tokenValue)){
+			try {
+				var reqData = getHttpRequestData();
+				if(structKeyExists(reqData, "headers") AND isStruct(reqData.headers)){
+					if(structKeyExists(reqData.headers, "X-CSRF-Token")){
+						tokenValue = trim(reqData.headers["X-CSRF-Token"] & "");
+					} else if(structKeyExists(reqData.headers, "x-csrf-token")){
+						tokenValue = trim(reqData.headers["x-csrf-token"] & "");
+					}
+				}
+			} catch(any e) {
+				tokenValue = "";
+			}
+		}
+		if(!len(tokenValue) OR !CsrfVerifyToken(tokenValue)){
+			redirectTo(route="denied", error="Invalid authenticity token.");
+			return false;
+		}
+		return true;
+	}
+
+	/**
 	*  @hint Redirect logged-in users away — usable as a filter (Sessions)
 	*/
 	public void function redirectIfLoggedIn() {
@@ -194,7 +219,22 @@ component extends="Wheels" hint="Global Controller"
 	*  @hint Load current user object into scope — usable as a filter
 	*/
 	public void function getCurrentUser() {
-		user = model("user").findOne(where="id=#session.currentUser.id# AND email='#session.currentUser.email#'");
+		var cu = currentUser();
+		var safeUserId = structKeyExists(cu, "id") ? val(cu.id) : 0;
+		var safeEmail = structKeyExists(cu, "email") ? trim(cu.email & "") : "";
+		var userLookup = queryNew("");
+		if(safeUserId LTE 0 OR !len(safeEmail)){
+			redirectTo(route="home", error="Sorry, we couldn't find your account.");
+			return;
+		}
+		userLookup = queryExecute(
+			"SELECT id FROM users WHERE id = ? AND email = ? LIMIT 1",
+			[safeUserId, safeEmail],
+			{datasource=application.wheels.datasourcename}
+		);
+		if(userLookup.recordCount){
+			user = model("user").findByKey(val(userLookup.id[1]));
+		}
 		if(!isObject(user)){
 			redirectTo(route="home", error="Sorry, we couldn't find your account.");
 		}
@@ -279,7 +319,8 @@ component extends="Wheels" hint="Global Controller"
 	}
 
 	public string function _generateApiKey(){
-		return hash(createUUID() & getAuthKey(), 'SHA-512');
+		var sr = createObject("java", "java.security.SecureRandom");
+		return lCase(binaryEncode(sr.generateSeed(32), "hex"));
 	}
 
 	public string function createSalt() {
@@ -291,7 +332,10 @@ component extends="Wheels" hint="Global Controller"
 	}
 
 	public string function hashPassword(required string password, required string salt) {
-		return hash(arguments.password & arguments.salt, 'SHA-512');
+		if(len(trim(arguments.salt & ""))){
+			return hash(arguments.password & arguments.salt, 'SHA-512');
+		}
+		return hash(arguments.password, 'SHA-512');
 	}
 
 	public string function getIPAddress() {
@@ -325,6 +369,12 @@ component extends="Wheels" hint="Global Controller"
 
 	// Auth/session helpers required by legacy controllers
 	public void function _createUserInScope(required any user) {
+		// Rotate session id on login to reduce session fixation risk.
+		try {
+			sessionRotate();
+		} catch(any e) {
+			// Older engines may not expose sessionRotate().
+		}
 		var scope = {
 			id = user.id,
 			firstname = user.firstname,

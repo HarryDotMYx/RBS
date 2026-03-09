@@ -95,9 +95,8 @@
 		form.firstname=trim(form.firstname);
 		form.lastname=trim(form.lastname);
 		form.email=trim(form.email);
-		form.t_salt=createUUID();
-		form.password=hashPassword(form.password, form.t_salt);
-		form.salt=encrypt(form.t_salt, getAuthKey(), 'CFMX_COMPAT');
+		form.password=generatePasswordHash(form.password);
+		form.salt="";
 	</cfscript>
 
 	<cfquery datasource="#arguments.dsn#" name="adminU">
@@ -128,10 +127,31 @@
 	</cfscript>
 </cffunction>
 
-<cffunction name="hashPassword" hint="Hash Password using SHA512">
+<cffunction name="hashPassword" hint="Legacy hash function kept for compatibility">
 	<cfargument name="string" required="true">
-	<cfargument name="salt" required="true">
+	<cfargument name="salt" required="false" default="">
 	<cfscript>
-	return hash(arguments.string & arguments.salt, 'SHA-512');
+	if (len(arguments.salt)) {
+		return hash(arguments.string & arguments.salt, 'SHA-512');
+	}
+	return generatePasswordHash(arguments.string);
+	</cfscript>
+</cffunction>
+
+<cffunction name="generatePasswordHash" hint="Hash Password using PBKDF2-HMAC-SHA256">
+	<cfargument name="string" required="true">
+	<cfscript>
+	var secureRandom = createObject("java", "java.security.SecureRandom");
+	var saltBytes = secureRandom.generateSeed(16);
+	var iterations = 210000;
+	var keySpec = createObject("java", "javax.crypto.spec.PBEKeySpec").init(
+		createObject("java", "java.lang.String").init(arguments.string & "").toCharArray(),
+		saltBytes,
+		iterations,
+		256
+	);
+	var skf = createObject("java", "javax.crypto.SecretKeyFactory").getInstance("PBKDF2WithHmacSHA256");
+	var derivedBytes = skf.generateSecret(keySpec).getEncoded();
+	return "pbkdf2_sha256$#iterations#$#binaryEncode(saltBytes, 'base64')#$#binaryEncode(derivedBytes, 'base64')#";
 	</cfscript>
 </cffunction>
