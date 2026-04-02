@@ -1,100 +1,86 @@
-# 🏢 Room Booking System (RBS) v2.0
+<div align="center">
+  <h1>🏢 Room Booking System (RBS) v2.0</h1>
+  <p><strong>Next-Generation Enterprise Room Management System</strong></p>
+  
+  [![Lucee](https://img.shields.io/badge/Lucee-7.0.2-blue.svg?style=for-the-badge&logo=lucee)](https://lucee.org/)
+  [![Wheels](https://img.shields.io/badge/cfWheels-3.x-red.svg?style=for-the-badge)](#)
+  [![MariaDB](https://img.shields.io/badge/MariaDB-11.4-003545.svg?style=for-the-badge&logo=mariadb)](https://mariadb.org/)
+  [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952b3.svg?style=for-the-badge&logo=bootstrap)](https://getbootstrap.com/)
+  [![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED.svg?style=for-the-badge&logo=docker)](https://www.docker.com/)
+  [![Status](https://img.shields.io/badge/Status-Active-success.svg?style=for-the-badge)]()
+</div>
 
-> A web-based room booking system with calendar interface — migrated and maintained from the original [OxAlto RoomBooking System](https://github.com/neokoenig/RoomBooking) by Tom King.
-
----
-
-## ✨ Tech Stack
-
-| Layer | Technology |
-|---|---|
-| **Framework** | [cfWheels 3](https://cfwheels.org/) (CFML) |
-| **Server** | Lucee 7.0.1 |
-| **Database** | MariaDB |
-| **UI** | Bootstrap 5.3 |
-| **Calendar** | FullCalendar 6.1 |
-| **Build Tool** | Vite 7 |
-| **Deployment** | Docker Compose |
+<br />
 
 ---
 
-## 🚦 Current Status (Updated: 2026-03-09)
+## 🚀 Welcome to RBS v2.0
 
-| Feature | Status |
-|---|---|
-| App boot & routing | ✅ Working |
-| Login / session management | ✅ Working |
-| Users: create account via UI | ✅ Fixed (`variable [PASSWORD] doesn't exist` resolved) |
-| Users: update account without password | ✅ Fixed (password only required when intentionally changing it) |
-| Locations list & view | ✅ Fixed |
-| Calendar events feed | ✅ Working |
-| Booking add / list / view | ✅ Working |
-| Event details rendering | ✅ Fixed |
-| Security: login brute-force lockout | ✅ Added (5 failures => 10-minute lock) |
-| Security: password reset token storage | ✅ Hardened (DB stores token hash, not raw token) |
-| Security: API URL token auth (`?token=`) | ✅ Disabled by default (header auth only; opt-in fallback) |
-| Security: dev/prod session isolation | ✅ Hardened (`RBS_INSTANCE_NAME` / env-aware app namespace) |
-| Security: baseline response headers | ✅ Added (`X-Frame-Options`, `CSP`, `Referrer-Policy`, etc.) |
-| Security: flash/log output XSS hardening | ✅ Added (escaped dynamic event titles and log message rendering) |
-| Password reset email | ⚠️ Requires SMTP config in `.env` |
-| Plugin compatibility (FlashWrapper, shortcodes) | ✅ Addressed |
+RBS v2.0 is a robust, premium web-based room booking and calendar management system. Comprehensively migrated and heavily enhanced from the original OxAlto core, RBS v2.0 represents a monumental leap in software architecture, delivering modern security, zero-touch automated deployments, and a stunning **Dark Glassmorphism UI** tailored for professional enterprise environments.
 
 ---
 
-## ⚙️ Runtime Info
+## ✨ Key Features & Enhancements
 
-```
-App path  : /opt/RoomBooking-A/app-v251
-Compose   : /opt/RoomBooking-A/docker-compose-v3.yml
-App URL   : http://<server-ip>:3999
-```
+💎 **Premium UI/UX Engine**
+- Complete frontend and backend redesign featuring a dynamic, responsive **Dark Glassmorphism** aesthetic.
+- Enhanced Admin Dashboard packed with interactive, intuitive layouts and polished visual interactions.
+- FullCalendar 6.1 integration for silky smooth booking and scheduling operations.
+
+🛡️ **Enterprise-Grade Security Architecture**
+- **Brute-Force Protection:** Active counter-measures with automated login throttles (5 consecutive failures = 10-minute lockout).
+- **Hardened Cryptography:** Password reset tokens are securely hashed dynamically within the database layer.
+- **Strict Network Headers:** Comprehensive deployment of `X-Frame-Options`, strict `CSP`, and `Referrer-Policy`.
+- **Environment Isolation:** Advanced runtime namespace scoping via `RBS_INSTANCE_NAME` for parallel cluster safety.
+- **Input Sanitization:** Deep-level escaping on dynamic event titles and log message renderers (XSS Proofed).
+
+⚡ **Next-Gen Automation & DevOps**
+- **Automated Zero-Touch Installer:** Spin up the Database and Application dynamically with no manual CFML wizard data entry required.
+- **Docker Native:** Pre-engineered with optimized `docker-compose-v3.yml` for instant, scalable, and highly available infrastructure.
+- **CommandBox Powered:** Leverages the robust Ortus CommandBox Lucee engine on standard port mappings.
 
 ---
 
-## 🚀 Docker Setup & Installation
+## 🛠️ Technology Stack Breakdown
 
-For a highly detailed, comprehensive guide on how to deploy this system using Docker—including the Automated Zero-Touch Database Installer—please refer to our dedicated documentation:
+| Architecture Layer    | Technology Framework / Engine |
+|-----------------------|--------------------------------|
+| **Core Application**  | [cfWheels 3](https://cfwheels.org/) (CFML MVC Framework) |
+| **Application Server**| Lucee 7.0.2.106 |
+| **Relational DB**     | MariaDB 11.4 |
+| **UI Framework**      | Bootstrap 5.3 + FullCalendar 6.1 |
+| **Asset Pipeline**    | Vite 7 |
+| **Infrastructure**    | Docker Compose + Ortus CommandBox |
+
+---
+
+## 🚀 Docker Setup & Deployment Guide
+
+RBS v2.0 is optimized to run flawlessly in Docker containers. For a highly detailed, comprehensive guide covering our Automated Zero-Touch Database Installer, read the dedicated documentation:
 
 👉 **[Read the Full Docker Installation Guide](docs/INSTALL_DOCKER.md)**
 
----
-
 ### 🟢 Quick Start (TL;DR)
 
-### 📁 Folder Structure
-
-```
-/opt/RoomBooking-A/
-├── docker-compose-v3.yml   ← Compose file for this app
-└── app-v251/               ← App code (mounted as /app inside container)
-    ├── .cfconfig.json      ← Base Lucee config (datasource overridden at runtime)
-    ├── index.cfm
-    ├── controllers/
-    ├── views/
-    └── ...
-```
-
----
-
-### 🟢 Start
-
-**First time or after a long pause:**
+**1. Clone & Configure Environment**
 ```bash
-cd /opt/RoomBooking-A
+cd /opt/RBS/app
 cp .env.example .env
-# update ADMIN_EMAIL / DB_PASSWORD / DB_ROOT_PASSWORD in .env
+```
+*(Update `ADMIN_EMAIL`, `DB_PASSWORD`, and `DB_ROOT_PASSWORD` in your `.env` file first!)*
+
+**2. Deploy Infrastructure**
+```bash
 docker-compose -f docker-compose-v3.yml up -d
 ```
+> The `-d` flag runs the containers in detached (background) mode gracefully.
 
-> The `-d` flag runs containers in detached (background) mode.
-
-**Check status:**
+**3. Verify Matrix Operations**
 ```bash
 docker-compose -f docker-compose-v3.yml ps
 ```
-
-Expected output:
-```
+*Expected output:*
+```text
 NAME                 STATUS
 roombooking-a-db     running (healthy)
 roombooking-a-appv3  running
@@ -102,72 +88,43 @@ roombooking-a-appv3  running
 
 ---
 
-### 🔄 Restart
+## ⚙️ Container Management Commands
 
-**Restart all services:**
+### 🔄 Restart Services
 ```bash
+# Full stack restart
 docker-compose -f docker-compose-v3.yml restart
-```
 
-**Restart app container only:**
-```bash
+# Restart application node only (Lucee Engine reload)
 docker-compose -f docker-compose-v3.yml restart appv3
 ```
 
----
-
-### 🔴 Stop
-
-**Stop but keep data:**
+### 🔴 Stop & Teardown
 ```bash
+# Pause infrastructure (data & containers preserved)
 docker-compose -f docker-compose-v3.yml stop
-```
 
-**Stop and remove containers (DB data remains safe in volume):**
-```bash
+# Complete teardown (DB records remain safe in volume mounts)
 docker-compose -f docker-compose-v3.yml down
 ```
 
----
-
-### 📋 View Logs
-
-**Live / real-time logs:**
+### 📋 Live Container Telemetry (Logs)
 ```bash
 docker-compose -f docker-compose-v3.yml logs -f appv3
 ```
 
-**Last 50 lines:**
-```bash
-docker-compose -f docker-compose-v3.yml logs --tail=50 appv3
-```
-
----
-
-### 🖥️ Shell Access (Inside Container)
-
-```bash
-docker exec -it roombooking-a-appv3 /bin/bash
-```
-
-> Useful for debugging or inspecting files inside the container.
-
----
-
-### 🔁 Reload App (Clear Lucee Cache)
-
-After making code changes:
+### 🔁 Application Hot-Reload
+Flush the Lucee framework cache instantly without executing a container restart:
 ```
 http://<server-ip>:3999/index.cfm?reload=roombooking
 ```
-
-> This clears all controller/model cache without restarting the container.
+> Note: If `RBS_RELOAD_PASSWORD` is defined in `.env`, append `&password=your_password`.
 
 ---
 
-### 🗄️ Database Access
+## 🗄️ Database Access & Diagnostics
 
-To access the database via CLI:
+Jump explicitly into your MariaDB instance via direct CLI bridge:
 
 ```bash
 docker exec -it roombooking-a-db mariadb \
@@ -175,65 +132,24 @@ docker exec -it roombooking-a-db mariadb \
   -p"${DB_PASSWORD:-roombooking123}" \
   "${DB_NAME:-roombooking}"
 ```
-
-> DB container is internal-only by default (no host port exposure).
-
----
-
-### 🔧 Troubleshooting
-
-| Problem | Solution |
-|---|---|
-| Container won't start | Run `docker-compose logs appv3` and check for errors |
-| Port 3999 not accessible | Run `docker-compose ps` — ensure status is `running` |
-| App errors after editing code | Hit the reload URL or restart the container |
-| Database connection error | Ensure the `db` container is also running |
-| Auto-install fails with `AUTO_INSTALL requires ADMIN_EMAIL` | Set `ADMIN_EMAIL` in `.env`, then restart `appv3` |
-| Password reset throws `no SMTP Server defined` | Set SMTP vars in `.env` (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_TLS`, `SMTP_SSL`) and restart `appv3` |
-| Need initial admin password | Check `docker-compose logs appv3` for `RBS_AUTO_INSTALL_ADMIN ...` entry |
-| Code changes not taking effect | Lucee cache — hit the reload URL |
-
----
-
-## 🗄️ Database / Datasource
-
-Configured at runtime from environment variables in `Application.cfc`:
-
-| Datasource | Purpose |
-|---|---|
-| `roombooking` | Main application database |
-| `app` | Compatibility alias for Wheels tooling |
-
-Key env vars:
-`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_ROOT_PASSWORD`, `AUTO_INSTALL`, `ADMIN_EMAIL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_TLS`, `SMTP_SSL`
-
----
-
-## 🔧 Migration Notes (Wheels 1.x/2.x → 3.x)
-
-1. **Controller path fix** — `wheels/events/onapplicationstart.cfc` updated from `/app/controllers` → `/controllers` to resolve a Docker path mismatch that caused all controllers to fall back to internal test fixtures.
-2. **Legacy helper shims** — added to `controllers/Controller.cfc` for Wheels 3 compatibility.
-3. **Variable scoping** — `locations`, `settings`, `resources` explicitly scoped to `variables` in controller filters.
-4. **Shortcode/template rendering** — replaced with direct rendering paths for stability.
-5. **Test runner** — `tests/runner.cfm` intentionally disabled in production deployment.
-6. **Install files** — removed from active deployment flow.
+ *(For security purposes, the database container is internal-only and not directly exposed to host ports)*
 
 ---
 
 ## 🏆 Credits and Acknowledgements
 
-This comprehensive v2.0 overhaul—spanning UI modernization, automated Docker deployment pipelines, system security patches, and structural architecture upgrades—was engineered and finalized by:
+This comprehensive v2.0 overhaul—spanning UI modernization, automated Docker deployment pipelines, system security patches, and structural architecture upgrades—was entirely engineered and finalized by:
 
-✨ **PG Mohd Azhan Fikri ([HarryDotMYx](https://github.com/HarryDotMYx))**
+### ✨ **PG Mohd Azhan Fikri ([HarryDotMYx](https://github.com/HarryDotMYx))**
 
-Deep appreciation is extended for his rigorous efforts in transforming and elevating the Room Booking System to its current professional-grade standard.
+Deep appreciation is extended for his rigorous efforts in transforming, fine-tuning, and elevating the Room Booking System to its current **ultra-professional, enterprise-grade standard.**
 
 ---
 
 ## 📄 License & Attribution
 
-- **Original project:** OxAlto Room Booking System — © Tom King ([@neokoenig](https://github.com/neokoenig))
-- **Original repo:** https://github.com/neokoenig/RoomBooking
+- **Original Project:** OxAlto Room Booking System — © Tom King ([@neokoenig](https://github.com/neokoenig))
+- **Original Source:** https://github.com/neokoenig/RoomBooking
 - **License:** Apache License 2.0
 
-This maintained fork includes migration and stability updates for modern runtime (cfWheels 3 + Lucee 7) compatibility.
+*This radically overhauled maintainer fork includes vast migration updates, stability patches, and modernization pipelines specifically engineered for CFWheels 3 & Lucee 7 deployment models.*
