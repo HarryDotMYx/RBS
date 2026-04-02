@@ -1,155 +1,136 @@
 <div align="center">
-  <h1>🏢 Room Booking System (RBS) v2.0</h1>
-  <p><strong>Next-Generation Enterprise Room Management System</strong></p>
   
-  [![Lucee](https://img.shields.io/badge/Lucee-7.0.2-blue.svg?style=for-the-badge&logo=lucee)](https://lucee.org/)
-  [![Wheels](https://img.shields.io/badge/cfWheels-3.x-red.svg?style=for-the-badge)](#)
-  [![MariaDB](https://img.shields.io/badge/MariaDB-11.4-003545.svg?style=for-the-badge&logo=mariadb)](https://mariadb.org/)
-  [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952b3.svg?style=for-the-badge&logo=bootstrap)](https://getbootstrap.com/)
-  [![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED.svg?style=for-the-badge&logo=docker)](https://www.docker.com/)
-  [![Status](https://img.shields.io/badge/Status-Active-success.svg?style=for-the-badge)]()
+  <br/>
+  <h1>✨ 🏢 ROOM BOOKING SYSTEM (RBS) V2.0 ✨</h1>
+  <p><strong>The Ultimate Enterprise-Grade Room Management Architecture</strong></p>
+  <br/>
+
+  [![Lucee Ecosystem](https://img.shields.io/badge/Lucee-7.0.2.106-0062ab?style=for-the-badge&logo=lucee&logoColor=white)](https://lucee.org/)
+  [![CFWheels](https://img.shields.io/badge/Powered_by-cfWheels_3.x-E50000?style=for-the-badge)](https://cfwheels.org/)
+  [![Database](https://img.shields.io/badge/MariaDB-11.4-003545?style=for-the-badge&logo=mariadb&logoColor=white)](https://mariadb.org/)
+  [![UI](https://img.shields.io/badge/Bootstrap-5.3-7952b3?style=for-the-badge&logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
+  [![Vite](https://img.shields.io/badge/Vite-8.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+  [![Docker](https://img.shields.io/badge/Native_Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+
+  <br/>
+  
+  **[ 📖 Read the Full Installation Guide ](docs/INSTALL_DOCKER.md)** • **[ 🐛 Report Bug ](#)** • **[ ✨ Request Feature ](#)**
+  
+  <br/>
 </div>
 
-<br />
+---
+
+## 🌌 The Vision: Redefining Room Management
+
+**RBS v2.0** is not just an update; it is a complete structural metamorphosis. Evolved from the classic OxAlto core, this iteration brings a radically modernized backend, military-grade security patches, and an ultra-premium **Dark Glassmorphism UI**. Designed specifically for high-availability enterprise environments, it combines seamless booking workflows with cutting-edge system architecture.
+
+> *"Performance, Security, and Aesthetics—engineered into one seamless platform."*
 
 ---
 
-## 🚀 Welcome to RBS v2.0
+## 🛠️ Elite Architecture Overview
 
-RBS v2.0 is a robust, premium web-based room booking and calendar management system. Comprehensively migrated and heavily enhanced from the original OxAlto core, RBS v2.0 represents a monumental leap in software architecture, delivering modern security, zero-touch automated deployments, and a stunning **Dark Glassmorphism UI** tailored for professional enterprise environments.
+Our infrastructure is built for maximum scalability and zero downtime. 
 
----
-
-## ✨ Key Features & Enhancements
-
-💎 **Premium UI/UX Engine**
-- Complete frontend and backend redesign featuring a dynamic, responsive **Dark Glassmorphism** aesthetic.
-- Enhanced Admin Dashboard packed with interactive, intuitive layouts and polished visual interactions.
-- FullCalendar 6.1 integration for silky smooth booking and scheduling operations.
-
-🛡️ **Enterprise-Grade Security Architecture**
-- **Brute-Force Protection:** Active counter-measures with automated login throttles (5 consecutive failures = 10-minute lockout).
-- **Hardened Cryptography:** Password reset tokens are securely hashed dynamically within the database layer.
-- **Strict Network Headers:** Comprehensive deployment of `X-Frame-Options`, strict `CSP`, and `Referrer-Policy`.
-- **Environment Isolation:** Advanced runtime namespace scoping via `RBS_INSTANCE_NAME` for parallel cluster safety.
-- **Input Sanitization:** Deep-level escaping on dynamic event titles and log message renderers (XSS Proofed).
-
-⚡ **Next-Gen Automation & DevOps**
-- **Automated Zero-Touch Installer:** Spin up the Database and Application dynamically with no manual CFML wizard data entry required.
-- **Docker Native:** Pre-engineered with optimized `docker-compose-v3.yml` for instant, scalable, and highly available infrastructure.
-- **CommandBox Powered:** Leverages the robust Ortus CommandBox Lucee engine on standard port mappings.
+```mermaid
+graph TD;
+    Client((Web Client / Admin)) -->|HTTP/S| Proxy[Reverse Proxy / Port 3999]
+    Proxy --> Frontend[Vite 8 Asset Pipeline]
+    Proxy --> AppNode[Ortus CommandBox + Lucee 7 Engine]
+    
+    subgraph Containerized Matrix
+      AppNode --> |ORM / SQL| DB[(MariaDB 11.4)]
+      Frontend --> AppNode
+    end
+```
 
 ---
 
-## 🛠️ Technology Stack Breakdown
+## 💎 Groundbreaking Features
 
-| Architecture Layer    | Technology Framework / Engine |
-|-----------------------|--------------------------------|
-| **Core Application**  | [cfWheels 3](https://cfwheels.org/) (CFML MVC Framework) |
-| **Application Server**| Lucee 7.0.2.106 |
-| **Relational DB**     | MariaDB 11.4 |
-| **UI Framework**      | Bootstrap 5.3 + FullCalendar 6.1 |
-| **Asset Pipeline**    | Vite 8 |
-| **Infrastructure**    | Docker Compose + Ortus CommandBox |
+### 🎨 Dark Glassmorphism Premium UI
+* A visually stunning, highly immersive interface that leverages background blurring, vibrant gradients, and crisp typography.
+* Complete visual overhaul of calendars, admin dashboards, and popups to ensure maximum user engagement.
+* **FullCalendar 6.1** seamlessly styled to fit the futuristic dark-mode aesthetic.
+
+### 🛡️ Iron-Clad Security Matrix
+* **Intelligent Auto-Lockout:** Defeats brute-force attacks by locking IPs automatically after 5 failed attempts (10-minute cooldown).
+* **Cryptographic Hardening:** Reset protocols now use salted, dynamically generated SHA-256 hashes instead of raw tokens.
+* **Hermetic Session Isolation:** `RBS_INSTANCE_NAME` ensures complete namespace isolation across dev/prod environments deployed on the same server.
+* **XSS Armor:** Deep-level escaping on all user-submitted data, rendering malicious script injections entirely obsolete.
+
+### ⚡ Zero-Touch Automation & DevOps
+* **One-Click Spawning:** The entire application and database ignite simultaneously via a finely-tuned `docker-compose-v3.yml`.
+* **Auto-Installer Protocol:** The CFML wizard runs *automagically* upon first boot. No manual initializations required.
+* **Vite 8 Supercharged Build:** Modern asset bundling ensuring lightning-fast JavaScript and CSS compilation.
 
 ---
 
-## 🚀 Docker Setup & Deployment Guide
+## 🚀 Quick-Deploy Infrastructure (Docker)
 
-RBS v2.0 is optimized to run flawlessly in Docker containers. For a highly detailed, comprehensive guide covering our Automated Zero-Touch Database Installer, read the dedicated documentation:
+To launch this masterpiece on your local or production environment, follow the supreme protocol below:
 
-👉 **[Read the Full Docker Installation Guide](docs/INSTALL_DOCKER.md)**
-
-### 🟢 Quick Start (TL;DR)
-
-**1. Clone & Configure Environment**
+### 1️⃣ Clone & Initialize Matrix
 ```bash
+git clone <repository-url>
 cd /opt/RBS/app
 cp .env.example .env
 ```
-*(Update `ADMIN_EMAIL`, `DB_PASSWORD`, and `DB_ROOT_PASSWORD` in your `.env` file first!)*
+> ⚠️ **CRITICAL:** Open `.env` and assign your highly secure `DB_PASSWORD`, `DB_ROOT_PASSWORD`, and `ADMIN_EMAIL`.
 
-**2. Deploy Infrastructure**
+### 2️⃣ Ignite the Containers
+Deploy the application and database into their isolated environments.
 ```bash
 docker-compose -f docker-compose-v3.yml up -d
 ```
-> The `-d` flag runs the containers in detached (background) mode gracefully.
 
-**3. Verify Matrix Operations**
+### 3️⃣ Monitor the Launch
+Verify that all subsystems are fully operational.
 ```bash
 docker-compose -f docker-compose-v3.yml ps
 ```
-*Expected output:*
-```text
-NAME                 STATUS
-roombooking-a-db     running (healthy)
-roombooking-a-appv3  running
-```
+Your application is now streaming live on port `3999`! 🎉
 
 ---
 
-## ⚙️ Container Management Commands
+## ⚙️ Advanced Telemetry & Operations
 
-### 🔄 Restart Services
-```bash
-# Full stack restart
-docker-compose -f docker-compose-v3.yml restart
+| Command Operation | Shell Execution Strategy |
+| :--- | :--- |
+| **Hot Reload Engine** | `http://<server-ip>:3999/index.cfm?reload=roombooking` |
+| **Monitor Live Telemetry**| `docker-compose logs -f appv3` |
+| **Hard Reboot System** | `docker-compose restart` |
+| **Terminal Access (App)** | `docker exec -it roombooking-a-appv3 /bin/bash` |
+| **Direct Database Inject** | `docker exec -it roombooking-a-db mariadb -u roombooking -p` |
 
-# Restart application node only (Lucee Engine reload)
-docker-compose -f docker-compose-v3.yml restart appv3
-```
-
-### 🔴 Stop & Teardown
-```bash
-# Pause infrastructure (data & containers preserved)
-docker-compose -f docker-compose-v3.yml stop
-
-# Complete teardown (DB records remain safe in volume mounts)
-docker-compose -f docker-compose-v3.yml down
-```
-
-### 📋 Live Container Telemetry (Logs)
-```bash
-docker-compose -f docker-compose-v3.yml logs -f appv3
-```
-
-### 🔁 Application Hot-Reload
-Flush the Lucee framework cache instantly without executing a container restart:
-```
-http://<server-ip>:3999/index.cfm?reload=roombooking
-```
-> Note: If `RBS_RELOAD_PASSWORD` is defined in `.env`, append `&password=your_password`.
+*(Note: Provide the DB password when prompted during the database inject).*
 
 ---
 
-## 🗄️ Database Access & Diagnostics
+## 👑 The Mastermind Behind v2.0
 
-Jump explicitly into your MariaDB instance via direct CLI bridge:
+Transforming a legacy system into a bleeding-edge enterprise software requires vision, relentless debugging, and architectural brilliance. 
 
-```bash
-docker exec -it roombooking-a-db mariadb \
-  -u"${DB_USER:-roombooking}" \
-  -p"${DB_PASSWORD:-roombooking123}" \
-  "${DB_NAME:-roombooking}"
-```
- *(For security purposes, the database container is internal-only and not directly exposed to host ports)*
+This monumental v2.0 overhaul—covering the Vite 8 pipelines, Lucee 7 deployment structures, advanced XSS & brute-force security, and the beautiful Dark Glassmorphism interface—was entirely engineered, maintained, and revolutionized by:
 
----
-
-## 🏆 Credits and Acknowledgements
-
-This comprehensive v2.0 overhaul—spanning UI modernization, automated Docker deployment pipelines, system security patches, and structural architecture upgrades—was entirely engineered and finalized by:
-
-### ✨ **PG Mohd Azhan Fikri ([HarryDotMYx](https://github.com/HarryDotMYx))**
-
-Deep appreciation is extended for his rigorous efforts in transforming, fine-tuning, and elevating the Room Booking System to its current **ultra-professional, enterprise-grade standard.**
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <h2>🧑‍💻 PG Mohd Azhan Fikri</h2>
+        <strong>( <a href="https://github.com/HarryDotMYx">@HarryDotMYx</a> )</strong><br><br>
+        <i>Software Architect & UI/UX Developer</i>
+      </td>
+    </tr>
+  </table>
+</div>
 
 ---
 
-## 📄 License & Attribution
+## ⚖️ License & Open Source Attribution
 
-- **Original Project:** OxAlto Room Booking System — © Tom King ([@neokoenig](https://github.com/neokoenig))
-- **Original Source:** https://github.com/neokoenig/RoomBooking
-- **License:** Apache License 2.0
+* **Original Blueprint:** OxAlto Room Booking System — © Tom King ([@neokoenig](https://github.com/neokoenig))
+* **License Protocol:** Apache License 2.0
 
-*This radically overhauled maintainer fork includes vast migration updates, stability patches, and modernization pipelines specifically engineered for CFWheels 3 & Lucee 7 deployment models.*
+*This radically overhauled maintainer fork represents the pinnacle of modern CFML deployment, standing as a testament to open-source evolution and dedicated software craftsmanship.*
