@@ -49,7 +49,7 @@ RBS v2.0 is a robust, premium web-based room booking and calendar management sys
 | **Application Server**| Lucee 7.0.2.106 |
 | **Relational DB**     | MariaDB 11.4 |
 | **UI Framework**      | Bootstrap 5.3 + FullCalendar 6.1 |
-| **Asset Pipeline**    | Vite 7 |
+| **Asset Pipeline**    | Vite 8 |
 | **Infrastructure**    | Docker Compose + Ortus CommandBox |
 
 ---

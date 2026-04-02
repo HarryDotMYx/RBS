@@ -7,7 +7,7 @@
     "dev:modern": "vite"
   },
   "devDependencies": {
-    "vite": "^7.1.3"
+    "vite": "^8.0.2"
   },
   "dependencies": {
     "bootstrap": "^5.3.8",
