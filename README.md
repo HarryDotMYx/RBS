@@ -7,7 +7,7 @@
 
   [![Lucee Ecosystem](https://img.shields.io/badge/Lucee-7.0.2.106-0062ab?style=for-the-badge&logo=lucee&logoColor=white)](https://lucee.org/)
   [![CFWheels](https://img.shields.io/badge/Powered_by-cfWheels_3.x-E50000?style=for-the-badge)](https://cfwheels.org/)
-  [![Database](https://img.shields.io/badge/MariaDB-11.4-003545?style=for-the-badge&logo=mariadb&logoColor=white)](https://mariadb.org/)
+  [![Database](https://img.shields.io/badge/MariaDB-Latest-003545?style=for-the-badge&logo=mariadb&logoColor=white)](https://mariadb.org/)
   [![UI](https://img.shields.io/badge/Bootstrap-5.3-7952b3?style=for-the-badge&logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
   [![Vite](https://img.shields.io/badge/Vite-8.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
   [![Docker](https://img.shields.io/badge/Native_Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
@@ -40,7 +40,7 @@ graph TD;
     Proxy --> AppNode[Ortus CommandBox + Lucee 7 Engine]
     
     subgraph Containerized Matrix
-      AppNode --> |ORM / SQL| DB[(MariaDB 11.4)]
+      AppNode --> |ORM / SQL| DB[(MariaDB Latest)]
       Frontend --> AppNode
     end
 ```

@@ -1,6 +1,6 @@
 services:
   db:
-    image: mariadb:11.4
+    image: mariadb:latest
     container_name: roombooking-a-db
     restart: unless-stopped
     environment:
