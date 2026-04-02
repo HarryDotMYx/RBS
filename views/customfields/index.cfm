@@ -1,7 +1,7 @@
 <!---================= Room Booking System / https://github.com/neokoenig =======================--->
 <!--- Custom fields index --->
-<cfparam name="customfields">
-<cfparam name="customtemplates">
+<cfparam name="customfields" default="#queryNew('id,name,parentmodel,type,options,class,description,required,customfieldsid,customfieldchildid,customfieldvalueid,value')#">
+<cfparam name="customtemplates" default="#queryNew('id,parentmodel,type,template')#">
 
 <cfoutput>
 	<!--- Custom Templates --->

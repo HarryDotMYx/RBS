@@ -44,14 +44,15 @@ $(document).ready(function () {
 				},
 
 				//----------------Event Sources----------
-				eventSources: [
-					{
-						url: eventsURL,
-						type: 'POST',
-						cache: false,
-						error: function () {
-							alert('there was an error while fetching events!');
-						}
+					eventSources: [
+						{
+							url: eventsURL,
+							type: 'GET',
+							dataType: 'json',
+							cache: false,
+							error: function () {
+								alert('there was an error while fetching events!');
+							}
 					}
 				],
 				//----------------Day Click--------------

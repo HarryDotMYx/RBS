@@ -2,6 +2,16 @@
 <cfoutput>
 <cfparam name="params.key" default="">
 <cfset cal=application.rbs.setting>
+
+<!--- Tunjuk kotak amaran pendaftaran untuk tetamu (belum log masuk) sahaja --->
+<cfif NOT structKeyExists(session, "currentuser")>
+	<div class="alert alert-info shadow-sm" role="alert" style="border-radius: 10px; border-left: 5px solid ##31708f; background-color: rgba(217, 237, 247, 0.85); margin-bottom: 25px; padding: 15px;">
+		<h4 style="color: ##31708f; margin-top: 0; font-weight: bold;"><i class="fa fa-info-circle"></i> Welcome to the Room Booking System!</h4>
+		<p style="color: ##31708f; font-size: 13.5px; margin-bottom: 12px; line-height: 1.5;">To check room availability and make your reservations, please create a personal account.</p>
+		<a href="#URLFor(route='register')#" class="btn btn-primary btn-sm" style="font-weight:bold; border-radius: 20px; padding: 5px 20px; font-size: 13px;">Create an Account</a>
+	</div>
+</cfif>
+
 <!--- Main Index --->
 <cfif cal.showlocationfilter>
     #includePartial(partial="locations", locations=locations)#

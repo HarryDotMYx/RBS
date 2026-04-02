@@ -1,7 +1,7 @@
 <!---================= Room Booking System / https://github.com/neokoenig =======================--->
 <!--- Location View--->
 <cfparam name="location">
-<cfparam name="customfields">
+<cfparam name="customfields" default="#queryNew('id,name,parentmodel,type,options,class,description,required,customfieldsid,customfieldchildid,customfieldvalueid,value')#">
 <cfoutput>
 #panel(title="Location Details")#
 <cfif structKeyExists(application.rbs.templates, "location") AND structKeyExists(application.rbs.templates.location, "output")>

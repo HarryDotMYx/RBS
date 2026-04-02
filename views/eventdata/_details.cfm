@@ -97,8 +97,20 @@
 			</cfif>
 		</div>
 
+				<cfset canManage = false>
+				<cfif userIsInRole("admin")>
+					<cfset canManage = true>
+				<cfelseif isLoggedIn()>
+					<cfset cu = currentUser()>
+					<cfif structKeyExists(cu, "id") AND isNumeric(cu.id) AND structKeyExists(event, "userid") AND isNumeric(event.userid) AND cu.id EQ event.userid>
+						<cfset canManage = true>
+					<cfelseif structKeyExists(event, "contactemail") AND len(trim(event.contactemail)) AND structKeyExists(cu, "email") AND lCase(trim(event.contactemail)) EQ lCase(trim(cu.email))>
+						<cfset canManage = true>
+					</cfif>
+				</cfif>
+
 			<div class="event-popup-actions">
-				<cfif checkPermission("allowRoomBooking")>
+				<cfif checkPermission("allowRoomBooking") AND canManage>
 					#linkTo(action="edit", key=event.eventid, text="<span class='glyphicon glyphicon-pencil'></span> Edit", controller="bookings", class="btn btn-info btn-sm", encode=false)#
 					#linkTo(action="clone", key=event.eventid, text="<span class='glyphicon glyphicon-repeat'></span> Clone", controller="bookings", class="btn btn-warning btn-sm", encode=false)#
 					#buttonTo(action="delete", key=event.eventid, text="<span class='glyphicon glyphicon-trash'></span> Delete", controller="bookings", class="btn-inline", inputClass="btn btn-danger btn-sm", inputOnclick="return confirm('Are you sure?');", encode=false)#

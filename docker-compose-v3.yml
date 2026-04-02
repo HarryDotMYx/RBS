@@ -52,6 +52,7 @@ services:
       - .:/app
     ports:
       - "3999:8080"
+      - "127.0.0.1:8889:8080"
 
 volumes:
   db_data:

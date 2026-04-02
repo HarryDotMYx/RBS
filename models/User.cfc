@@ -21,14 +21,14 @@ component extends="Model" hint="User Model"
 	*  @hint Sanitize inputs
 	*/
 	public void function sanitize() {
-		this.firstname = htmlEditFormat(this.firstname);
-		this.lastname = htmlEditFormat(this.lastname);
-		this.address1 = htmlEditFormat(this.address1);
-		this.address2 = htmlEditFormat(this.address2);
-		this.state = htmlEditFormat(this.state);
-		this.postcode = htmlEditFormat(this.postcode);
-		this.country = htmlEditFormat(this.country);
-		this.tel = htmlEditFormat(this.tel);
+		if(structKeyExists(this, "firstname")) this.firstname = htmlEditFormat(this.firstname);
+		if(structKeyExists(this, "lastname")) this.lastname = htmlEditFormat(this.lastname);
+		if(structKeyExists(this, "address1")) this.address1 = htmlEditFormat(this.address1);
+		if(structKeyExists(this, "address2")) this.address2 = htmlEditFormat(this.address2);
+		if(structKeyExists(this, "state")) this.state = htmlEditFormat(this.state);
+		if(structKeyExists(this, "postcode")) this.postcode = htmlEditFormat(this.postcode);
+		if(structKeyExists(this, "country")) this.country = htmlEditFormat(this.country);
+		if(structKeyExists(this, "tel")) this.tel = htmlEditFormat(this.tel);
 	}
 
 	/**

@@ -407,6 +407,7 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 				redirectTo(action="index", success="Event successfully created");
 			}
 	        else {
+				customfields=getCustomFields(objectname=request.modeltype, key=event.key());
 				renderView(action="add", error="There were problems creating that event");
 			}
 		}
@@ -418,8 +419,20 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 	public void function notifyContact(required struct event) {
 		if( isValid("email", arguments.event.contactemail)
 			AND !application.rbs.setting.isDemoMode){
-			// Get the location for reference
-			eventlocation=model("location").findOne(where="id = #arguments.event.locationid#");
+			// Get the location for reference using a validated numeric key.
+			// Avoid passing raw/blank values into model where clauses.
+			var safeLocationId = 0;
+			var foundLocation = "";
+			var eventlocation = {name="", description="", building=""};
+			if (structKeyExists(arguments.event, "locationid") && isNumeric(arguments.event.locationid)) {
+				safeLocationId = val(arguments.event.locationid);
+			}
+			if (safeLocationId GT 0) {
+				foundLocation = model("location").findByKey(safeLocationId);
+				if (isObject(foundLocation) || isStruct(foundLocation)) {
+					eventlocation = foundLocation;
+				}
+			}
 			try{
 				var mailArgs = {
 				    to="#arguments.event.contactname# <#arguments.event.contactemail#>",
@@ -427,7 +440,8 @@ component extends="Controller" hint="Main Events/Bookings Controller"
 				    from="#application.rbs.setting.sitetitle# <#application.rbs.setting.siteEmailAddress#>",
 				    template="/email/bookingNotify",
 				    subject="Room Booking Notification (#event.status#)",
-				    event=arguments.event
+				    event=arguments.event,
+				    eventlocation=eventlocation
 				};
 				structAppend(mailArgs, getMailDeliverySettings(), true);
 				sendEmail(argumentCollection=mailArgs);

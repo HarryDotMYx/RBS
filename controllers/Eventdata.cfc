@@ -8,7 +8,9 @@ component extends="Controller" hint="Misc Event Data"
 		
 		// super.config() disabled during migration;
 // legacy super.init removed for CFWheels2+
-		protectsFromForgery(with="exception");
+		// Read-only event feed/detail endpoints are called via AJAX and may be requested
+		// by older clients as POST; skip CSRF checks for these safe read actions.
+		protectsFromForgery(with="exception", except="getevents,getevent");
 
 		// Additional Permissions
 		filters(through="checkPermissionAndRedirect", permission="accesscalendar");
@@ -134,6 +136,7 @@ component extends="Controller" hint="Misc Event Data"
 					e.contactno,
 					e.description AS eventdescription,
 					e.locationid,
+					e.userid,
 					0 AS locationmissing,
 					l.name,
 					COALESCE(l.description, '') AS description,

@@ -406,7 +406,7 @@ component extends="Wheels" hint="Global Controller"
 	/**
 	*  @hint Reject non-POST requests for state-changing actions
 	*/
-	public boolean function requirePostRequest() {
+	public boolean function requirePostRequest(boolean verifyCsrf=true) {
 		var requestMethod = "";
 		var tokenValue = "";
 		if(structKeyExists(cgi, "request_method")){
@@ -416,26 +416,28 @@ component extends="Wheels" hint="Global Controller"
 			redirectTo(route="denied", error="Invalid request method.");
 			return false;
 		}
-		if(structKeyExists(params, "authenticityToken")){
-			tokenValue = trim(params.authenticityToken & "");
-		}
-		if(!len(tokenValue)){
-			try {
-				var reqData = getHttpRequestData();
-				if(structKeyExists(reqData, "headers") AND isStruct(reqData.headers)){
-					if(structKeyExists(reqData.headers, "X-CSRF-Token")){
-						tokenValue = trim(reqData.headers["X-CSRF-Token"] & "");
-					} else if(structKeyExists(reqData.headers, "x-csrf-token")){
-						tokenValue = trim(reqData.headers["x-csrf-token"] & "");
-					}
-				}
-			} catch(any e) {
-				tokenValue = "";
+		if(arguments.verifyCsrf){
+			if(structKeyExists(params, "authenticityToken")){
+				tokenValue = trim(params.authenticityToken & "");
 			}
-		}
-		if(!len(tokenValue) OR !CsrfVerifyToken(tokenValue)){
-			redirectTo(route="denied", error="Invalid authenticity token.");
-			return false;
+			if(!len(tokenValue)){
+				try {
+					var reqData = getHttpRequestData();
+					if(structKeyExists(reqData, "headers") AND isStruct(reqData.headers)){
+						if(structKeyExists(reqData.headers, "X-CSRF-Token")){
+							tokenValue = trim(reqData.headers["X-CSRF-Token"] & "");
+						} else if(structKeyExists(reqData.headers, "x-csrf-token")){
+							tokenValue = trim(reqData.headers["x-csrf-token"] & "");
+						}
+					}
+				} catch(any e) {
+					tokenValue = "";
+				}
+			}
+			if(!len(tokenValue) OR !CsrfVerifyToken(tokenValue)){
+				redirectTo(route="denied", error="Invalid authenticity token.");
+				return false;
+			}
 		}
 		return true;
 	}
@@ -616,7 +618,7 @@ component extends="Wheels" hint="Global Controller"
 			email = user.email,
 			tel = structKeyExists(user, "tel") ? user.tel : "",
 			role = user.role,
-			apitoken = user.apitoken
+			apitoken = structKeyExists(user, "apitoken") ? user.apitoken : ""
 		};
 		// maintain both casings for legacy compatibility
 		session.currentuser = scope;

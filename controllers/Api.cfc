@@ -24,6 +24,35 @@ component extends="Controller" hint="RSS/ICal Etc"
 
 /******************** Public***********************/
 	/**
+	*  @hint API feed landing page; refreshes current session token from DB.
+	*/
+	public void function index() {
+		apiTokenValue = "";
+		if(isLoggedIn()){
+			var cu = currentUser();
+			var userId = (structKeyExists(cu, "id") AND isNumeric(cu.id)) ? val(cu.id) : 0;
+			if(userId GT 0){
+				var tokenLookup = queryExecute(
+					"SELECT apitoken FROM users WHERE id = ? AND deletedat IS NULL LIMIT 1",
+					[userId],
+					{datasource=application.wheels.datasourcename}
+				);
+				if(tokenLookup.recordCount){
+					apiTokenValue = trim(tokenLookup.apitoken[1] & "");
+					if(!structKeyExists(session, "currentuser") OR !isStruct(session.currentuser)){
+						session.currentuser = {};
+					}
+					if(!structKeyExists(session, "currentUser") OR !isStruct(session.currentUser)){
+						session.currentUser = {};
+					}
+					session.currentuser.apitoken = apiTokenValue;
+					session.currentUser.apitoken = apiTokenValue;
+				}
+			}
+		}
+	}
+
+	/**
 	*  @hint Full Screen Display/digital signage
 	*/
 	public void function display() {

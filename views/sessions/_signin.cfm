@@ -22,7 +22,8 @@ admin@domain.com</pre>
 			#checkBoxTag(name="rememberme", label="Remember my email",  checked=savedemail)#
 		</cfif>
 			#submitTag(value="Sign in",  class="btn btn-primary btn-block append")#
-			#linkTo(text="Forgot your password?",  controller="passwordResets", action="new")#
+			#linkTo(text="Forgot your password?",  controller="passwordResets", action="new")# | 
+			#linkTo(text="Register Account", route="register")#
 		#endFormTag()#
 
 </cfoutput>

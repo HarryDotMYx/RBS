@@ -8,8 +8,8 @@ component extends="Controller" hint="Sessions Controller"
 		
 		// super.config() disabled during migration;
 // Permission filters - NB, doesn't go via super.init()
-		protectsFromForgery(with="exception");
-		filters(through="requirePostRequest", only="attemptlogin,logout");
+		protectsFromForgery(with="exception", except="attemptlogin,logout");
+		filters(through="requirePostRequest", only="attemptlogin,logout", verifyCsrf=false);
 		filters(through="redirectIfLoggedIn", only="new,attemptlogin");
 	}
 
@@ -58,6 +58,16 @@ component extends="Controller" hint="Sessions Controller"
 					if(structKeyExists(params, "rememberme")){
 						setCookieRememberUsername(params.email);
 					}
+					if(structKeyExists(user, "emailconfirmed") AND user.emailconfirmed EQ 0){
+						_denyLogin(
+							logMessage="Login failed: email not confirmed for #h(params.email)#.",
+							emailKey=normalizedEmail,
+							ipAddress=clientIp,
+							skipFailureRecord=true,
+							userMessage="⚠️ Your account has not been verified yet. Please check your inbox and click the verification link to activate your account."
+						);
+						return;
+					}
 					_clearFailedLoginAttempts(emailKey=normalizedEmail, ipAddress=clientIp);
 					addlogline(type="Login", message="#user.email# successfully logged in", userid=user.id);
 					_createUserInScope(user);
@@ -93,6 +103,7 @@ component extends="Controller" hint="Sessions Controller"
 			return;
 		}
 		StructDelete(session, "currentUser");
+		StructDelete(session, "currentuser");
 		redirectTo(route="home", success="You have been successfully signed out");
 	}
 

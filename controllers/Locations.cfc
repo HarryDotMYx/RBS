@@ -65,6 +65,7 @@ component extends="Controller" hint="Locations Controller"
 				redirectTo(action="index", success="location successfully created");
 			}
 	        else {
+				customfields=getCustomFields(objectname=request.modeltype, key=location.key());
 				renderView(action="add", error="There were problems creating that location");
 			}
 		}
@@ -97,6 +98,7 @@ component extends="Controller" hint="Locations Controller"
 				redirectTo(action="index", success="Location successfully updated");
 			}
 	        else {
+				customfields=getCustomFields(objectname=request.modeltype, key=params.key);
 				renderView(action="edit", error="There were problems updating that Location");
 			}
 		}

@@ -3,7 +3,7 @@
 <cfparam name="locations">
 <cfparam name="resources">
 <cfparam name="event">
-<cfparam name="customfields">
+<cfparam name="customfields" default="#queryNew('id,name,parentmodel,type,options,class,description,required,customfieldsid,customfieldchildid,customfieldvalueid,value')#">
 
 <cfoutput>
 	#hiddenFieldTag(name="tempkey", value=event.key())#
@@ -17,13 +17,13 @@
 			<fieldset>
 				<legend>Event Details</legend>
 				<div class="row"> 
-					<div class="col-md-4">#textField(objectName="event", property="title", label="Title")#</div>
-					<div class="col-md-4">#select(objectName="event", property="locationid", options=locations, textField="name", valueField="id", includeBlank="Choose Location", label="Location")#</div>
-					<div class="col-md-2">#textField(objectName="event", property="layoutstyle", label="Layout")#</div>
+					<div class="col-md-4">#textField(objectName="event", property="title", label="Title", required="true")#</div>
+					<div class="col-md-4">#select(objectName="event", property="locationid", options=locations, textField="name", valueField="id", includeBlank="Choose Location", label="Location", required="true")#</div>
+					<div class="col-md-2">#textField(objectName="event", property="layoutstyle", label="Layout", required="false")#</div>
 				</div>
 				<div class="row"> 
-					<div class="col-md-4">#textField(objectName="event", property="start", label="Start", class="form-control datetimepicker")#</div>
-					<div class="col-md-4">#textField(objectName="event", property="end", label="End", class="form-control datetimepicker")#</div>
+					<div class="col-md-4">#textField(objectName="event", property="start", label="Start", class="form-control datetimepicker", required="true")#</div>
+					<div class="col-md-4">#textField(objectName="event", property="end", label="End", class="form-control datetimepicker", required="true")#</div>
 					<div class="col-md-4">#checkBox(objectName="event", property="allDay", label="All Day")#</div>
 				</div>
 			</fieldset>

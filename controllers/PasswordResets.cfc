@@ -1,4 +1,4 @@
-﻿//================= Room Booking System / https://github.com/neokoenig =======================--->
+//================= Room Booking System / https://github.com/neokoenig =======================--->
 component extends="Controller" hint=""
 {
 	/**
@@ -32,7 +32,7 @@ component extends="Controller" hint=""
 					to=user.email,
 					from="#application.rbs.setting.sitetitle# <#application.rbs.setting.siteemailaddress#>",
 					subject="[#application.rbs.setting.sitetitle#] Password Reset Request",
-					template="/email/passwordReset",
+					template="/email/passwordreset",
 					user=user
 				};
 				structAppend(mailArgs, getMailDeliverySettings(), true);
@@ -44,10 +44,11 @@ component extends="Controller" hint=""
 					text="[PASSWORD_RESET] Failed to send reset email to #user.email#: #mailError.message#"
 				);
 			}
+			flashInsert(success="Password reset instructions have been sent.");
 		} else {
 			addLogLine(type="Login", message="Password reset requested for unknown email #h(params.email)#");
+			flashInsert(error="THIS EMAIL IS NOT REGISTERED. Please check your email address and try again.");
 		}
-		flashInsert(success="If an account exists for that email, password reset instructions have been sent.");
 		redirectTo(action="new");
 	}
 
